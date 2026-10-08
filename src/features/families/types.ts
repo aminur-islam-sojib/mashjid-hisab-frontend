@@ -31,6 +31,10 @@ export interface FamilyRecord {
     id: string;
     user?: { name: string; email?: string | null; phone?: string | null };
   } | null;
+  headMembership?: {
+    id: string;
+    user?: { name: string; email?: string | null; phone?: string | null };
+  } | null;
   members?: FamilyMemberItem[];
   _count?: {
     members: number;

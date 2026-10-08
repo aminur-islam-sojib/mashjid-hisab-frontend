@@ -1,62 +1,86 @@
-"use client";
-
 import * as React from "react";
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import {
-  Building2,
-  Coins,
-  TrendingDown,
-  PiggyBank,
-  CheckCircle2,
-  CheckSquare,
-  ShieldCheck,
   Globe,
-  Users,
-  Calendar,
+  ShieldCheck,
+  TrendingDown,
   Lock,
 } from "lucide-react";
-import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { MosqueLogo } from "@/components/brand/logo";
-import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
+import { DonationsFeed } from "@/features/transparency/donations-feed";
+import {
+  PublicMosqueSummary,
+  PublicCampaignFeedItem,
+  PublicExpenseCategoryItem,
+} from "@/features/transparency/types";
 
-function PublicMosqueTransparencyContent() {
-  const params = useParams();
-  const slug = params["slug"] as string;
+const API_BASE_URL =
+  process.env["API_URL"] ||
+  process.env["NEXT_PUBLIC_API_URL"] ||
+  "http://localhost:5000/api";
 
-  // 1. Fetch Mosque Public Profile
-  const { data: mosque, isError: isMosqueError } = useQuery<any>({
-    queryKey: ["public-mosque", slug],
-    queryFn: () => apiClient.get<any>(`/public/mosques/${slug}`),
-  });
+async function getSummary(slug: string): Promise<PublicMosqueSummary | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/mosques/${slug}/summary`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data || json;
+  } catch {
+    return null;
+  }
+}
 
-  // 2. Fetch Funds Summary
-  const { data: summaryData, isLoading: isSummaryLoading } = useQuery<any>({
-    queryKey: ["public-summary", slug],
-    queryFn: () => apiClient.get<any>(`/public/mosques/${slug}/summary`),
-  });
+async function getCampaigns(slug: string): Promise<PublicCampaignFeedItem[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/mosques/${slug}/campaigns`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const data = json.data || json;
+    return data.campaigns || (Array.isArray(data) ? data : []);
+  } catch {
+    return [];
+  }
+}
 
-  // 3. Fetch Public Campaigns
-  const { data: campaignsData } = useQuery<any>({
-    queryKey: ["public-campaigns", slug],
-    queryFn: () => apiClient.get<any>(`/public/mosques/${slug}/campaigns`),
-  });
+async function getExpensesSummary(slug: string): Promise<PublicExpenseCategoryItem[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/mosques/${slug}/expenses/summary`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const data = json.data || json;
+    return data.categories || (Array.isArray(data) ? data : []);
+  } catch {
+    return [];
+  }
+}
 
-  // 4. Fetch Recent Donations Feed
-  const { data: donationsFeed } = useQuery<any>({
-    queryKey: ["public-donations", slug],
-    queryFn: () => apiClient.get<any>(`/public/mosques/${slug}/donations?limit=15`),
-  });
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
 
-  // 5. Fetch Expenses Summary
-  const { data: expensesSummary } = useQuery<any>({
-    queryKey: ["public-expenses", slug],
-    queryFn: () => apiClient.get<any>(`/public/mosques/${slug}/expenses/summary`),
-  });
+export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params;
+  return {
+    title: `Financial Transparency — ${slug}`,
+  };
+}
 
-  if (isMosqueError) {
+async function TransparencyContent({ params }: PageProps) {
+  const { slug } = await params;
+
+  const [summaryData, campaigns, expenses] = await Promise.all([
+    getSummary(slug),
+    getCampaigns(slug),
+    getExpensesSummary(slug),
+  ]);
+
+  if (!summaryData) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
         <Lock className="w-12 h-12 text-gray-400 mb-3" />
@@ -70,10 +94,13 @@ function PublicMosqueTransparencyContent() {
     );
   }
 
-  const funds = summaryData?.funds || summaryData || [];
-  const campaigns = campaignsData?.campaigns || campaignsData || [];
-  const donations = donationsFeed?.donations || donationsFeed?.items || donationsFeed || [];
-  const expenses = expensesSummary?.categories || expensesSummary || [];
+  const mosque = summaryData.mosque;
+  const funds = summaryData.funds || [];
+  const totalBalance =
+    summaryData.totalBalance ||
+    funds
+      .reduce((acc, f) => acc + BigInt(f.currentBalance || "0"), 0n)
+      .toString();
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
@@ -123,7 +150,7 @@ function PublicMosqueTransparencyContent() {
                 Total Fund Balances
               </span>
               <div className="text-3xl font-black mt-1 text-white">
-                {formatCurrency(summaryData?.totalBalance || "0")}
+                {formatCurrency(totalBalance)}
               </div>
               <span className="text-xs text-teal-200 mt-1 block">
                 Audited Current Reserves
@@ -146,38 +173,37 @@ function PublicMosqueTransparencyContent() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.isArray(funds) &&
-              funds.map((f: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-xs space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-900 truncate">
-                      {f.name}
+            {funds.map((f, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-5 rounded-xl border border-gray-200/80 shadow-xs space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-900 truncate">
+                    {f.name}
+                  </span>
+                  {f.isRestricted && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded">
+                      Restricted
                     </span>
-                    {f.isRestricted && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded">
-                        Restricted
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="text-2xl font-black text-[#006B5B] block">
-                      {formatCurrency(f.currentBalance || "0")}
-                    </span>
-                    <span className="text-xs text-gray-400">Current Balance</span>
-                  </div>
-                  <div className="pt-2 border-t border-gray-100 flex justify-between text-xs text-gray-500">
-                    <span>Collected: {formatCurrency(f.totalCollected || "0")}</span>
-                  </div>
+                  )}
                 </div>
-              ))}
+                <div>
+                  <span className="text-2xl font-black text-[#006B5B] block">
+                    {formatCurrency(f.currentBalance || "0")}
+                  </span>
+                  <span className="text-xs text-gray-400">Current Balance</span>
+                </div>
+                <div className="pt-2 border-t border-gray-100 flex justify-between text-xs text-gray-500">
+                  <span>Collected: {formatCurrency(f.totalCollected || "0")}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
         {/* Active Campaigns */}
-        {Array.isArray(campaigns) && campaigns.length > 0 && (
+        {campaigns.length > 0 && (
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-bold text-gray-900">Active Fundraising Appeals</h2>
@@ -187,7 +213,7 @@ function PublicMosqueTransparencyContent() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {campaigns.map((camp: any) => {
+              {campaigns.map((camp) => {
                 const percent = camp.progress?.progressPercent ?? 0;
                 return (
                   <div
@@ -241,43 +267,8 @@ function PublicMosqueTransparencyContent() {
 
         {/* Dual Grid: Recent Donations & Expenses */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Donations Feed */}
-          <section className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <div className="flex items-center space-x-2">
-                <Coins className="w-5 h-5 text-emerald-600" />
-                <h3 className="font-bold text-gray-900">Recent Contributions</h3>
-              </div>
-              <span className="text-xs text-gray-400">Live feed</span>
-            </div>
-
-            {!Array.isArray(donations) || donations.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-8">
-                No recent public donations recorded.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {donations.map((d: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm"
-                  >
-                    <div>
-                      <span className="font-semibold text-gray-900 block">
-                        {d.donorName || "Generous Donor"}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(d.date).toLocaleDateString()} • {d.fundName || "General Fund"}
-                      </span>
-                    </div>
-                    <span className="font-bold text-emerald-700">
-                      +{formatCurrency(d.amount)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          {/* Recent Donations Feed (Interactive Client Component) */}
+          <DonationsFeed slug={slug} />
 
           {/* Expense Categories Breakdown */}
           <section className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-6 space-y-4">
@@ -289,13 +280,13 @@ function PublicMosqueTransparencyContent() {
               <span className="text-xs text-gray-400">Category totals</span>
             </div>
 
-            {!Array.isArray(expenses) || expenses.length === 0 ? (
+            {expenses.length === 0 ? (
               <p className="text-xs text-gray-400 text-center py-8">
                 No categorized expenses recorded yet.
               </p>
             ) : (
               <div className="space-y-3">
-                {expenses.map((exp: any, idx: number) => (
+                {expenses.map((exp, idx) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm"
@@ -309,7 +300,7 @@ function PublicMosqueTransparencyContent() {
                       </span>
                     </div>
                     <span className="font-bold text-red-700">
-                      -{formatCurrency(exp.totalAmount || exp.amount || "0")}
+                      -{formatCurrency(exp.totalAmount || exp.amount || exp.total || "0")}
                     </span>
                   </div>
                 ))}
@@ -322,7 +313,7 @@ function PublicMosqueTransparencyContent() {
   );
 }
 
-export default function PublicMosqueTransparencyPage() {
+export default function PublicMosqueTransparencyPage({ params }: PageProps) {
   return (
     <React.Suspense
       fallback={
@@ -334,7 +325,7 @@ export default function PublicMosqueTransparencyPage() {
         </div>
       }
     >
-      <PublicMosqueTransparencyContent />
+      <TransparencyContent params={params} />
     </React.Suspense>
   );
 }
