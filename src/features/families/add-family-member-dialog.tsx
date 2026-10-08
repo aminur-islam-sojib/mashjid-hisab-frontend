@@ -21,6 +21,7 @@ interface AddFamilyMemberDialogProps {
   onClose: () => void;
   mosqueId: string;
   family: FamilyRecord | null;
+  onSuccess?: () => void;
 }
 
 export function AddFamilyMemberDialog({
@@ -28,6 +29,7 @@ export function AddFamilyMemberDialog({
   onClose,
   mosqueId,
   family,
+  onSuccess,
 }: AddFamilyMemberDialogProps) {
   const queryClient = useQueryClient();
 
@@ -67,14 +69,19 @@ export function AddFamilyMemberDialog({
     mutationFn: async (values: FamilyMemberValues) => {
       if (!family) return;
       const payload: Record<string, any> = {
-        name: values.name,
+        name: values.name.trim(),
         relation: values.relation,
       };
-      if (values.gender) payload.gender = values.gender;
-      if (values.phone) payload.phone = values.phone;
-      if (values.dateOfBirth) payload.dateOfBirth = new Date(values.dateOfBirth).toISOString();
-      if (values.occupation) payload.occupation = values.occupation;
-      if (values.bloodGroup) payload.bloodGroup = values.bloodGroup;
+      if (values.gender?.trim()) payload.gender = values.gender.trim();
+      if (values.phone?.trim()) payload.phone = values.phone.trim();
+      if (values.dateOfBirth?.trim()) {
+        const parsed = new Date(values.dateOfBirth.trim());
+        if (!Number.isNaN(parsed.getTime())) {
+          payload.dateOfBirth = parsed.toISOString();
+        }
+      }
+      if (values.occupation?.trim()) payload.occupation = values.occupation.trim();
+      if (values.bloodGroup?.trim()) payload.bloodGroup = values.bloodGroup.trim();
 
       return apiClient.post(
         `/mosques/${mosqueId}/families/${family.id}/members`,
@@ -85,6 +92,7 @@ export function AddFamilyMemberDialog({
       toast.success("Family member added.");
       queryClient.invalidateQueries({ queryKey: ["families", mosqueId] });
       queryClient.invalidateQueries({ queryKey: ["family-detail", mosqueId, family?.id] });
+      onSuccess?.();
       onClose();
     },
     onError: (err: any) => {

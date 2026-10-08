@@ -82,8 +82,13 @@ export function FamilyDetailsModal({
             <div>
               <span className="text-xs text-gray-400 font-medium">Head of Household</span>
               <p className="font-bold text-gray-900 mt-0.5">
-                {family.head?.user?.name || "Registered Member"}
+                {family.headMembership?.user?.name || family.head?.user?.name || "Registered Member"}
               </p>
+              {(family.headMembership?.user?.phone || family.head?.user?.phone) && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {family.headMembership?.user?.phone || family.head?.user?.phone}
+                </p>
+              )}
               {family.address && (
                 <p className="text-xs text-gray-500 mt-0.5">{family.address}</p>
               )}

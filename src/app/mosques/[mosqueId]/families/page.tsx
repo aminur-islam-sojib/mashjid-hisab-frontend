@@ -29,6 +29,7 @@ export default function FamiliesPage() {
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [familyForDetails, setFamilyForDetails] = React.useState<string | null>(null);
   const [familyForAddMember, setFamilyForAddMember] = React.useState<FamilyRecord | null>(null);
+  const [returnToDetailsAfterAdd, setReturnToDetailsAfterAdd] = React.useState<string | null>(null);
 
   // Fetch families
   const { data: families, isLoading } = useQuery<FamilyRecord[]>({
@@ -40,12 +41,16 @@ export default function FamiliesPage() {
     if (!families) return [];
     return families.filter((f) => {
       const q = search.toLowerCase();
-      const headName = f.head?.user?.name || "";
-      const address = f.address || "";
+      const headName = (f.headMembership?.user?.name || f.head?.user?.name || "").toLowerCase();
+      const headPhone = (f.headMembership?.user?.phone || f.head?.user?.phone || "").toLowerCase();
+      const address = (f.address || "").toLowerCase();
+      const memberMatch = f.members?.some((m) => m.name.toLowerCase().includes(q)) ?? false;
       return (
         f.name.toLowerCase().includes(q) ||
-        headName.toLowerCase().includes(q) ||
-        address.toLowerCase().includes(q)
+        headName.includes(q) ||
+        headPhone.includes(q) ||
+        address.includes(q) ||
+        memberMatch
       );
     });
   }, [families, search]);
@@ -78,7 +83,7 @@ export default function FamiliesPage() {
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search family name, head of household, address..."
+            placeholder="Search family name, head of household, dependents, address..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006B5B]"
@@ -113,57 +118,76 @@ export default function FamiliesPage() {
               </Tr>
             </Thead>
             <Tbody>
-              {filteredFamilies.map((fam) => (
-                <Tr key={fam.id}>
-                  <Td className="font-semibold text-gray-900">
-                    {fam.name}
-                  </Td>
-                  <Td className="text-sm text-gray-700">
-                    <span className="font-medium">
-                      {fam.head?.user?.name || "Member Head"}
-                    </span>
-                    {fam.head?.user?.phone && (
-                      <span className="block text-xs text-gray-400">
-                        {fam.head.user.phone}
+              {filteredFamilies.map((fam) => {
+                const head = fam.headMembership?.user || fam.head?.user;
+                const memberCount = fam.members ? fam.members.length : (fam._count?.members ?? 0);
+
+                return (
+                  <Tr key={fam.id}>
+                    <Td className="font-semibold text-gray-900">
+                      {fam.name}
+                    </Td>
+                    <Td className="text-sm text-gray-700">
+                      <span className="font-medium">
+                        {head?.name || "Member Head"}
                       </span>
-                    )}
-                  </Td>
-                  <Td className="text-xs text-gray-600 max-w-xs truncate">
-                    {fam.address || "—"}
-                  </Td>
-                  <Td>
-                    <Badge variant="outline" className="text-xs">
-                      <Users className="w-3 h-3 mr-1 inline" />
-                      {fam.members ? fam.members.length : (fam._count?.members ?? 0)} members
-                    </Badge>
-                  </Td>
-                  <Td className="text-xs text-gray-500 whitespace-nowrap">
-                    {new Date(fam.createdAt).toLocaleDateString()}
-                  </Td>
-                  <Td className="text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs text-[#006B5B] hover:bg-[#E6F4F0]"
+                      {head?.phone && (
+                        <span className="block text-xs text-gray-400">
+                          {head.phone}
+                        </span>
+                      )}
+                    </Td>
+                    <Td className="text-xs text-gray-600 max-w-xs truncate">
+                      {fam.address || "—"}
+                    </Td>
+                    <Td>
+                      <button
+                        type="button"
                         onClick={() => setFamilyForDetails(fam.id)}
+                        className="inline-flex items-center text-left hover:opacity-80 transition-opacity"
                       >
-                        <Eye className="w-3.5 h-3.5 mr-1" />
-                        Members
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs text-gray-600 hover:bg-gray-100"
-                        onClick={() => setFamilyForAddMember(fam)}
-                      >
-                        <UserPlus className="w-3.5 h-3.5 mr-1" />
-                        Add
-                      </Button>
-                    </div>
-                  </Td>
-                </Tr>
-              ))}
+                        <Badge variant="outline" className="text-xs cursor-pointer">
+                          <Users className="w-3 h-3 mr-1 inline" />
+                          {memberCount} members
+                        </Badge>
+                      </button>
+                      {fam.members && fam.members.length > 0 && (
+                        <div className="text-[11px] text-gray-500 mt-1 truncate max-w-xs">
+                          {fam.members.map((m) => `${m.name} (${m.relation.toLowerCase()})`).join(", ")}
+                        </div>
+                      )}
+                    </Td>
+                    <Td className="text-xs text-gray-500 whitespace-nowrap">
+                      {new Date(fam.createdAt).toLocaleDateString()}
+                    </Td>
+                    <Td className="text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-[#006B5B] hover:bg-[#E6F4F0]"
+                          onClick={() => setFamilyForDetails(fam.id)}
+                        >
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          Members
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-gray-600 hover:bg-gray-100"
+                          onClick={() => {
+                            setReturnToDetailsAfterAdd(null);
+                            setFamilyForAddMember(fam);
+                          }}
+                        >
+                          <UserPlus className="w-3.5 h-3.5 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                    </Td>
+                  </Tr>
+                );
+              })}
             </Tbody>
           </Table>
         )}
@@ -179,9 +203,21 @@ export default function FamiliesPage() {
       {/* Add Family Member Dialog */}
       <AddFamilyMemberDialog
         isOpen={Boolean(familyForAddMember)}
-        onClose={() => setFamilyForAddMember(null)}
+        onClose={() => {
+          setFamilyForAddMember(null);
+          if (returnToDetailsAfterAdd) {
+            setFamilyForDetails(returnToDetailsAfterAdd);
+            setReturnToDetailsAfterAdd(null);
+          }
+        }}
         mosqueId={mosqueId}
         family={familyForAddMember}
+        onSuccess={() => {
+          if (returnToDetailsAfterAdd) {
+            setFamilyForDetails(returnToDetailsAfterAdd);
+            setReturnToDetailsAfterAdd(null);
+          }
+        }}
       />
 
       {/* Family Details Modal */}
@@ -190,7 +226,11 @@ export default function FamiliesPage() {
         onClose={() => setFamilyForDetails(null)}
         mosqueId={mosqueId}
         familyId={familyForDetails}
-        onAddMember={(f) => setFamilyForAddMember(f)}
+        onAddMember={(f) => {
+          setReturnToDetailsAfterAdd(f.id);
+          setFamilyForDetails(null);
+          setFamilyForAddMember(f);
+        }}
       />
     </div>
   );
