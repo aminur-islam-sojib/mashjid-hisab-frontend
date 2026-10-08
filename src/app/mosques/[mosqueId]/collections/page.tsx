@@ -21,6 +21,7 @@ import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { useAuth } from "@/providers/auth-provider";
 import { useMosque } from "@/providers/mosque-provider";
+import { COLLECTION_OPERATOR_ROLES, FINANCIAL_OPERATOR_ROLES } from "@/lib/roles";
 import { CollectionSession } from "@/features/collections/types";
 import { StartCollectionDialog } from "@/features/collections/start-collection-dialog";
 import { VerifyCollectionDialog } from "@/features/collections/verify-collection-dialog";
@@ -37,8 +38,8 @@ export default function CollectionsPage() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("");
 
-  const canStart = canAccess(["MOSQUE_ADMIN", "TREASURER", "STAFF"]);
-  const canVerify = canAccess(["MOSQUE_ADMIN", "TREASURER"]);
+  const canStart = canAccess(COLLECTION_OPERATOR_ROLES);
+  const canVerify = canAccess(FINANCIAL_OPERATOR_ROLES);
 
   // Fetch collections
   const { data: collections, isLoading } = useQuery<CollectionSession[]>({

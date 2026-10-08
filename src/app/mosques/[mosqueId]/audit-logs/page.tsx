@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { apiClient } from "@/lib/api-client";
 import { useMosque } from "@/providers/mosque-provider";
+import { ADMIN_ONLY_ROLES } from "@/lib/roles";
 
 export default function AuditLogsPage() {
   const params = useParams();
@@ -30,7 +31,7 @@ export default function AuditLogsPage() {
   const [entityFilter, setEntityFilter] = React.useState<string>("");
   const [selectedLog, setSelectedLog] = React.useState<any | null>(null);
 
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
 
   const { data: logsData, isLoading } = useQuery<any>({
     queryKey: ["audit-logs", mosqueId, actionFilter, entityFilter],

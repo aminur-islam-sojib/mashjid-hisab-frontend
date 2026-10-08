@@ -28,6 +28,7 @@ import { Modal } from "@/components/ui/modal";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { useMosque } from "@/providers/mosque-provider";
+import { ADMIN_ONLY_ROLES } from "@/lib/roles";
 
 export default function ReportsPage() {
   const params = useParams();
@@ -55,7 +56,7 @@ export default function ReportsPage() {
   const [reopenReason, setReopenReason] = React.useState("");
   const [isReopenModalOpen, setIsReopenModalOpen] = React.useState(false);
 
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
 
   // 1. Fetch Income/Expense
   const { data: incExpData, isLoading: isIncExpLoading } = useQuery<any>({

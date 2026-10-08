@@ -20,6 +20,7 @@ import {
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { useMosque } from "@/providers/mosque-provider";
+import { OVERSIGHT_ROLES } from "@/lib/roles";
 import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { Card } from "@/components/ui/card";
@@ -92,7 +93,7 @@ export default function MosqueDashboardPage() {
   const mosqueId = String(params?.["mosqueId"] || "");
   const { activeMosque, canAccess } = useMosque();
 
-  const isOversight = canAccess(["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"]);
+  const isOversight = canAccess(OVERSIGHT_ROLES);
 
   const {
     data: dashboardData,

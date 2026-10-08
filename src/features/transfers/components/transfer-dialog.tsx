@@ -14,6 +14,7 @@ import { apiClient, ApiError } from "@/lib/api-client";
 import { majorToPoisha } from "@/lib/money";
 import { Loader2, ArrowLeftRight } from "lucide-react";
 import { useMosque } from "@/providers/mosque-provider";
+import { ADMIN_ONLY_ROLES } from "@/lib/roles";
 
 interface TransferDialogProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export function TransferDialog({
   onSuccess,
 }: TransferDialogProps) {
   const { canAccess } = useMosque();
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const todayStr = new Date().toISOString().split("T")[0]!;

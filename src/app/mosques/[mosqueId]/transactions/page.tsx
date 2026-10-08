@@ -23,6 +23,7 @@ import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { useAuth } from "@/providers/auth-provider";
 import { useMosque } from "@/providers/mosque-provider";
+import { FINANCIAL_OPERATOR_ROLES } from "@/lib/roles";
 import {
   UnifiedTransactionItem,
   CursorPaginatedTransactions,
@@ -57,7 +58,7 @@ export default function TransactionsPage() {
   const [txToReject, setTxToReject] = React.useState<UnifiedTransactionItem | null>(null);
 
   // Can approve/reject check: MOSQUE_ADMIN or TREASURER
-  const isApprover = canAccess(["MOSQUE_ADMIN", "TREASURER"]);
+  const isApprover = canAccess(FINANCIAL_OPERATOR_ROLES);
 
   // Fetch Accounts and Funds for filter dropdowns
   const { data: accountsData } = useQuery({

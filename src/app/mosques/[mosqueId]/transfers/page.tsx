@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMosque } from "@/providers/mosque-provider";
+import { FINANCIAL_OPERATOR_ROLES, ADMIN_ONLY_ROLES } from "@/lib/roles";
 import { PaginatedResult } from "@/types/api";
 
 export default function TransfersPage() {
@@ -63,8 +64,8 @@ export default function TransfersPage() {
     },
   });
 
-  const isFinOps = canAccess(["MOSQUE_ADMIN", "TREASURER"]);
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
+  const isFinOps = canAccess(FINANCIAL_OPERATOR_ROLES);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
 
   const items = transfersData?.items || [];
   const pagination = transfersData?.pagination;

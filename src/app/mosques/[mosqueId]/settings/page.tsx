@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
 import { useMosque } from "@/providers/mosque-provider";
+import { ADMIN_ONLY_ROLES } from "@/lib/roles";
 
 export default function MosqueSettingsPage() {
   const params = useParams();
@@ -26,7 +27,7 @@ export default function MosqueSettingsPage() {
   const { canAccess } = useMosque();
   const queryClient = useQueryClient();
 
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
 
   // Fetch mosque details
   const { data: mosque, isLoading } = useQuery<any>({

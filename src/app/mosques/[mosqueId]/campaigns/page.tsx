@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { useMosque } from "@/providers/mosque-provider";
+import { ADMIN_ONLY_ROLES } from "@/lib/roles";
 import { CampaignItem } from "@/features/campaigns/types";
 import { CampaignDialog } from "@/features/campaigns/campaign-dialog";
 import { CloseCampaignDialog } from "@/features/campaigns/close-campaign-dialog";
@@ -36,7 +37,7 @@ export default function CampaignsPage() {
   const [campaignToClose, setCampaignToClose] = React.useState<CampaignItem | null>(null);
   const [campaignForDonors, setCampaignForDonors] = React.useState<CampaignItem | null>(null);
 
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
 
   // Fetch campaigns
   const { data: campaignsData, isLoading } = useQuery<{ data: CampaignItem[] }>({

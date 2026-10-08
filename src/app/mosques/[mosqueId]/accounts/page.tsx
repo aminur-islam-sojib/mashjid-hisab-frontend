@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMosque } from "@/providers/mosque-provider";
+import { FINANCIAL_OPERATOR_ROLES, ADMIN_ONLY_ROLES } from "@/lib/roles";
 
 export default function AccountsPage() {
   const params = useParams();
@@ -47,8 +48,8 @@ export default function AccountsPage() {
     },
   });
 
-  const isFinOps = canAccess(["MOSQUE_ADMIN", "TREASURER"]);
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
+  const isFinOps = canAccess(FINANCIAL_OPERATOR_ROLES);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
 
   return (
     <div className="space-y-6">

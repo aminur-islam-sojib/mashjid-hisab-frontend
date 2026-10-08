@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { useMosque } from "@/providers/mosque-provider";
+import { FINANCIAL_OPERATOR_ROLES } from "@/lib/roles";
 import { PledgeRecord, PledgeStatus } from "@/features/pledges/types";
 import { RecordPledgeDialog } from "@/features/pledges/record-pledge-dialog";
 import { CancelPledgeDialog } from "@/features/pledges/cancel-pledge-dialog";
@@ -34,7 +35,7 @@ export default function PledgesPage() {
   const [isRecordOpen, setIsRecordOpen] = React.useState(false);
   const [pledgeToCancel, setPledgeToCancel] = React.useState<PledgeRecord | null>(null);
 
-  const canRecord = canAccess(["MOSQUE_ADMIN", "TREASURER", "MEMBER"]);
+  const canRecord = canAccess(FINANCIAL_OPERATOR_ROLES);
 
   // Fetch pledges
   const { data: pledges, isLoading } = useQuery<PledgeRecord[]>({

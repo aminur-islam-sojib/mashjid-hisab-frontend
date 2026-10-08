@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMosque } from "@/providers/mosque-provider";
+import { COLLECTION_OPERATOR_ROLES, FINANCIAL_OPERATOR_ROLES } from "@/lib/roles";
 import { PaginatedResult } from "@/types/api";
 
 export default function DonationsPage() {
@@ -59,8 +60,8 @@ export default function DonationsPage() {
     enabled: !!mosqueId,
   });
 
-  const isCollectOps = canAccess(["MOSQUE_ADMIN", "TREASURER", "STAFF"]);
-  const isFinOps = canAccess(["MOSQUE_ADMIN", "TREASURER"]);
+  const isCollectOps = canAccess(COLLECTION_OPERATOR_ROLES);
+  const isFinOps = canAccess(FINANCIAL_OPERATOR_ROLES);
 
   const items = donationsData?.items || [];
   const pagination = donationsData?.pagination;

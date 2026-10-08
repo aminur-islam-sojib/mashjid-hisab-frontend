@@ -43,18 +43,29 @@ export interface DueRecord {
   createdAt: string;
 }
 
+export interface PaginatedResult<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export interface DuesSummary {
   period: string;
   totalExpected: string; // poisha
   totalCollected: string; // poisha
   totalWaived: string; // poisha
   totalOutstanding: string; // poisha
-  collectionRate: number; // percentage e.g. 78.5
+  collectionRate: number | string;
   totalDuesCount: number;
-  paidCount: number;
-  partialCount: number;
-  unpaidCount: number;
-  waivedCount: number;
+  defaulterCount?: number;
+  paidCount?: number;
+  partialCount?: number;
+  unpaidCount?: number;
+  waivedCount?: number;
   defaulters: Array<{
     dueId: string;
     period: string;

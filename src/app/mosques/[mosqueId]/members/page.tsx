@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { useMosque } from "@/providers/mosque-provider";
+import { ADMIN_ONLY_ROLES, FINANCIAL_OPERATOR_ROLES } from "@/lib/roles";
 import { MosqueMemberItem, InviteLinkItem } from "@/features/members/types";
 import { InviteMemberDialog } from "@/features/members/invite-member-dialog";
 import { DirectCreateMemberDialog } from "@/features/members/direct-create-member-dialog";
@@ -48,8 +49,8 @@ export default function MembersPage() {
   const [isGenerateLinkOpen, setIsGenerateLinkOpen] = React.useState(false);
   const [memberToEdit, setMemberToEdit] = React.useState<MosqueMemberItem | null>(null);
 
-  const isAdmin = canAccess(["MOSQUE_ADMIN"]);
-  const canDirectCreate = canAccess(["MOSQUE_ADMIN", "TREASURER"]);
+  const isAdmin = canAccess(ADMIN_ONLY_ROLES);
+  const canDirectCreate = canAccess(FINANCIAL_OPERATOR_ROLES);
 
   // Fetch Members
   const { data: members, isLoading: isMembersLoading } = useQuery<MosqueMemberItem[]>({

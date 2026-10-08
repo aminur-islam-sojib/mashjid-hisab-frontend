@@ -28,6 +28,12 @@ import {
 import { MosqueLogo } from "@/components/brand/logo";
 import { useMosque } from "@/providers/mosque-provider";
 import { Role } from "@/types/api";
+import {
+  OVERSIGHT_ROLES,
+  OPERATIONAL_ROLES,
+  COLLECTION_OPERATOR_ROLES,
+  ADMIN_ONLY_ROLES,
+} from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -55,37 +61,37 @@ export function Sidebar({ className }: { className?: string }) {
         title: "Master Ledger",
         href: `${base}/transactions`,
         icon: History,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"],
+        allowedRoles: OVERSIGHT_ROLES,
       },
       {
         title: "Donations",
         href: `${base}/donations`,
         icon: Coins,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER", "STAFF"],
+        allowedRoles: OPERATIONAL_ROLES,
       },
       {
         title: "Expenses",
         href: `${base}/expenses`,
         icon: TrendingDown,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER", "STAFF"],
+        allowedRoles: OPERATIONAL_ROLES,
       },
       {
         title: "Transfers",
         href: `${base}/transfers`,
         icon: ArrowLeftRight,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"],
+        allowedRoles: OVERSIGHT_ROLES,
       },
       {
         title: "Counting Sessions",
         href: `${base}/collections`,
         icon: Receipt,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "STAFF"],
+        allowedRoles: COLLECTION_OPERATOR_ROLES,
       },
       {
         title: "Chanda & Dues",
         href: `${base}/chanda`,
         icon: CalendarHeart,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"],
+        allowedRoles: OVERSIGHT_ROLES,
       },
       {
         title: "Pledges",
@@ -101,25 +107,25 @@ export function Sidebar({ className }: { className?: string }) {
         title: "Accounts",
         href: `${base}/accounts`,
         icon: Landmark,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"],
+        allowedRoles: OVERSIGHT_ROLES,
       },
       {
         title: "Funds",
         href: `${base}/funds`,
         icon: PiggyBank,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"],
+        allowedRoles: OVERSIGHT_ROLES,
       },
       {
         title: "Categories",
         href: `${base}/categories`,
         icon: Tags,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER", "STAFF"],
+        allowedRoles: OPERATIONAL_ROLES,
       },
       {
         title: "Members",
         href: `${base}/members`,
         icon: Users,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"],
+        allowedRoles: OVERSIGHT_ROLES,
       },
       {
         title: "Families",
@@ -130,7 +136,7 @@ export function Sidebar({ className }: { className?: string }) {
         title: "Reports",
         href: `${base}/reports`,
         icon: FileText,
-        allowedRoles: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"],
+        allowedRoles: OVERSIGHT_ROLES,
       },
       {
         title: "My Giving Portal",
@@ -141,13 +147,13 @@ export function Sidebar({ className }: { className?: string }) {
         title: "Audit Logs",
         href: `${base}/audit-logs`,
         icon: ShieldCheck,
-        allowedRoles: ["MOSQUE_ADMIN"],
+        allowedRoles: ADMIN_ONLY_ROLES,
       },
       {
         title: "Settings",
         href: `${base}/settings`,
         icon: Settings,
-        allowedRoles: ["MOSQUE_ADMIN"],
+        allowedRoles: ADMIN_ONLY_ROLES,
       },
     ],
     [base]
