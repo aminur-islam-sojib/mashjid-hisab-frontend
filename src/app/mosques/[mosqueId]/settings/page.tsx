@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { apiClient } from "@/lib/api-client";
 import { useMosque } from "@/providers/mosque-provider";
 import { ADMIN_ONLY_ROLES } from "@/lib/roles";
@@ -222,29 +224,57 @@ export default function MosqueSettingsPage() {
 
           {/* Public Transparency Portal Switch */}
           <div className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-6 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-base font-bold text-gray-900 flex items-center">
-                  <Globe className="w-4 h-4 mr-2 text-emerald-600" />
-                  Public Financial Transparency Page
-                </h3>
-                <p className="text-xs text-gray-500 mt-1 max-w-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-gray-900 flex items-center">
+                    <Globe className="w-4 h-4 mr-2 text-emerald-600" />
+                    Public Financial Transparency Page
+                  </h3>
+                  <Badge
+                    variant={isTransparencyEnabled ? "success" : "secondary"}
+                    className="text-[10px]"
+                  >
+                    {isTransparencyEnabled ? "Enabled" : "Disabled"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-gray-500 max-w-xl">
                   Enable public access to audited high-level summaries of collections,
                   fund balances, and expenses. Individual personal account numbers and internal IDs
                   are automatically masked.
                 </p>
               </div>
 
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="text-xs font-semibold text-gray-600">
+                  {isTransparencyEnabled ? "Public" : "Private"}
+                </span>
+                <Switch
+                  aria-label="Toggle Public Financial Transparency Page"
                   checked={isTransparencyEnabled}
-                  onChange={(e) => setIsTransparencyEnabled(e.target.checked)}
-                  className="sr-only peer"
+                  onCheckedChange={setIsTransparencyEnabled}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:transition-all peer-checked:bg-[#006B5B]" />
-              </label>
+              </div>
             </div>
+
+            {isTransparencyEnabled && mosque?.slug && (
+              <div className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p className="text-xs text-emerald-700 font-medium flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse" />
+                  Public transparency portal is live for your congregation.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`/m/${mosque.slug}`, "_blank")}
+                  className="text-xs border-[#006B5B]/30 text-[#006B5B] hover:bg-[#E6F4F0] self-start sm:self-auto"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                  View Public Page
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Save Button */}
