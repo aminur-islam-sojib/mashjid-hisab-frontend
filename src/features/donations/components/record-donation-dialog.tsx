@@ -35,6 +35,7 @@ export function RecordDonationDialog({
   onSuccess,
 }: RecordDonationDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const prevIsOpenRef = React.useRef(false);
 
   const incomeCategories = React.useMemo(() => {
     return categories?.filter((c) => c.type === "INCOME") || [];
@@ -47,6 +48,7 @@ export function RecordDonationDialog({
     handleSubmit,
     reset,
     watch,
+    setValue,
     setError,
     formState: { errors },
   } = useForm<CreateDonationFormData>({
@@ -68,19 +70,37 @@ export function RecordDonationDialog({
 
   const selectedFundId = watch("fundId");
 
+  const selectedFund = React.useMemo(() => {
+    return funds?.find((f) => f.id === selectedFundId);
+  }, [funds, selectedFundId]);
+
   const filteredCategories = React.useMemo(() => {
+    if (!selectedFund) return incomeCategories;
+    if (selectedFund.isRestricted) {
+      // Backend invariant: restricted funds require a category specifically allocated to them
+      return incomeCategories.filter((c) => c.fundId === selectedFundId);
+    }
     return incomeCategories.filter(
       (c) => !c.fundId || c.fundId === selectedFundId
     );
-  }, [incomeCategories, selectedFundId]);
+  }, [incomeCategories, selectedFund, selectedFundId]);
 
+  const currentCategoryId = watch("categoryId");
+
+  // Reset form ONLY when dialog opens, preserving inputs during fund selection
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
+      const initialFundId = funds?.[0]?.id || "";
+      const initialFund = funds?.[0];
+      const initialCats = initialFund?.isRestricted
+        ? incomeCategories.filter((c) => c.fundId === initialFundId)
+        : incomeCategories.filter((c) => !c.fundId || c.fundId === initialFundId);
+
       reset({
         amountMajor: "",
         accountId: accounts?.[0]?.id || "",
-        fundId: funds?.[0]?.id || "",
-        categoryId: filteredCategories?.[0]?.id || "",
+        fundId: initialFundId,
+        categoryId: initialCats?.[0]?.id || "",
         date: todayStr,
         donorName: "",
         donorPhone: "",
@@ -90,7 +110,17 @@ export function RecordDonationDialog({
         notes: "",
       });
     }
-  }, [isOpen, accounts, funds, filteredCategories, reset, todayStr]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, accounts, funds, incomeCategories, reset, todayStr]);
+
+  // Adjust category when selected fund changes without resetting other fields
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const isValid = filteredCategories.some((c) => c.id === currentCategoryId);
+    if (!isValid) {
+      setValue("categoryId", filteredCategories[0]?.id || "");
+    }
+  }, [filteredCategories, currentCategoryId, setValue, isOpen]);
 
   const onSubmit = async (data: CreateDonationFormData) => {
     setIsSubmitting(true);
@@ -119,10 +149,15 @@ export function RecordDonationDialog({
       onClose();
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.details && Array.isArray(err.details)) {
+        if (err.details && Array.isArray(err.details) && err.details.length > 0) {
           err.details.forEach((issue) => {
-            const field = issue.field as keyof CreateDonationFormData;
+            const field = (
+              issue.field === "amount" ? "amountMajor" : issue.field
+            ) as keyof CreateDonationFormData;
             setError(field, { message: issue.issue });
+          });
+          toast.error("Validation error", {
+            description: err.details[0]?.issue || err.message,
           });
         } else {
           toast.error("Failed to record donation", {
@@ -232,15 +267,24 @@ export function RecordDonationDialog({
             </label>
             <select
               {...register("categoryId")}
-              disabled={isSubmitting}
-              className="w-full h-9 rounded-xl border border-border bg-card px-3 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 shadow-xs"
+              disabled={isSubmitting || filteredCategories.length === 0}
+              className="w-full h-9 rounded-xl border border-border bg-card px-3 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 shadow-xs disabled:opacity-50"
             >
-              {filteredCategories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
+              {filteredCategories.length === 0 ? (
+                <option value="">No income category for this fund</option>
+              ) : (
+                filteredCategories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))
+              )}
             </select>
+            {filteredCategories.length === 0 && selectedFund?.isRestricted && (
+              <p className="text-[11px] text-amber-600 mt-1 font-medium">
+                Restricted funds require an income category specifically allocated to them.
+              </p>
+            )}
             {errors.categoryId && (
               <p className="text-xs text-destructive mt-1 font-medium">{errors.categoryId.message}</p>
             )}
