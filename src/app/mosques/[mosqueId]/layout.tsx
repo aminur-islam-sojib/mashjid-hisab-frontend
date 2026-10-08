@@ -1,31 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/providers/auth-provider";
 import { MosqueProvider } from "@/providers/mosque-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { Loader2 } from "lucide-react";
 
 function TenantShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const { user, isLoading, mustChangePassword } = useAuth();
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push(`/login?redirect=${encodeURIComponent(pathname || "/")}`);
-      } else if (mustChangePassword) {
-        router.push("/change-password");
-      }
-    }
-  }, [user, isLoading, mustChangePassword, router, pathname]);
-
-
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -43,7 +25,7 @@ function TenantShell({ children }: { children: React.ReactNode }) {
         <Header onToggleMobileMenu={() => setIsMobileNavOpen(true)} />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="  mx-auto space-y-6">
+          <div className="mx-auto space-y-6">
             {children}
           </div>
         </main>
@@ -78,4 +60,3 @@ export default function MosqueTenantLayout({
     </React.Suspense>
   );
 }
-
