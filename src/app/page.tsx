@@ -1,32 +1,34 @@
-"use client";
+import type { Metadata } from "next";
+import { MarketingNavbar } from "@/components/marketing/navbar";
+import { MarketingHero } from "@/components/marketing/hero";
+import { MarketingFeatures } from "@/components/marketing/features";
+import { MarketingGovernance } from "@/components/marketing/governance";
+import { MarketingWorkflow } from "@/components/marketing/workflow";
+import { MarketingTransparencySpotlight } from "@/components/marketing/transparency-spotlight";
+import { MarketingFaq } from "@/components/marketing/faq";
+import { MarketingCta } from "@/components/marketing/cta";
+import { MarketingFooter } from "@/components/marketing/footer";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/providers/auth-provider";
-import { Loader2 } from "lucide-react";
+export const metadata: Metadata = {
+  title: "Mosque Management — Modern Financial Governance & Amanah for Masjids",
+  description:
+    "The purpose-built financial operating system for mosque committees, treasurers, and imams. Featuring dual-control approvals, strict Zakat fund segregation, Jummah box counting, and public community transparency.",
+};
 
 export default function RootHomePage() {
-  const router = useRouter();
-  const { user, activeMosqueId, isLoading, mustChangePassword } = useAuth();
-
-  React.useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push("/login");
-      } else if (mustChangePassword) {
-        router.push("/change-password");
-      } else if (activeMosqueId) {
-        router.push(`/mosques/${activeMosqueId}/dashboard`);
-      } else {
-        router.push("/mosques");
-      }
-    }
-  }, [user, activeMosqueId, isLoading, mustChangePassword, router]);
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-3">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      <p className="text-xs text-muted-foreground font-medium">Entering Mosque Management...</p>
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors selection:bg-primary/20 selection:text-primary">
+      <MarketingNavbar />
+      <main className="flex-1">
+        <MarketingHero />
+        <MarketingFeatures />
+        <MarketingGovernance />
+        <MarketingWorkflow />
+        <MarketingTransparencySpotlight />
+        <MarketingFaq />
+        <MarketingCta />
+      </main>
+      <MarketingFooter />
     </div>
   );
 }

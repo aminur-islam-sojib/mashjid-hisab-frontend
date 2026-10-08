@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchSession = React.useCallback(async () => {
     try {
-      const data = await apiClient.get<AuthMeData>("/auth/me");
+      const data = await apiClient.get<AuthMeData>("/auth/me", { skipAuthRefresh: true });
       setUser(data.user);
       setMemberships(data.memberships || []);
       setActiveMosqueId(data.activeMosqueId);
@@ -58,7 +58,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRole(null);
       if (typeof window !== "undefined") {
         const path = window.location.pathname;
-        if (!path.startsWith("/login") && !path.startsWith("/register")) {
+        const isPublic =
+          path === "/" ||
+          path.startsWith("/login") ||
+          path.startsWith("/register") ||
+          path.startsWith("/forgot-password") ||
+          path.startsWith("/reset-password") ||
+          path.startsWith("/verify-email") ||
+          path.startsWith("/m/") ||
+          path.startsWith("/verify-receipt");
+
+        if (!isPublic) {
           router.push(`/login?redirect=${encodeURIComponent(path || "/")}`);
         }
       }
