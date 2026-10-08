@@ -106,9 +106,11 @@ export function KpiCards({
                 <span className="text-xl sm:text-2xl font-bold font-heading text-foreground">
                   {pendingCount}
                 </span>
-                <span className="text-xs text-muted-foreground truncate">
-                  ({formatCurrency(pendingAmount)})
-                </span>
+                {pendingAmount && pendingAmount !== "0" && pendingAmount !== BigInt(0) ? (
+                  <span className="text-xs text-muted-foreground truncate">
+                    ({formatCurrency(pendingAmount)})
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>

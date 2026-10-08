@@ -25,6 +25,7 @@ export default function MemberPortalPage() {
   const params = useParams();
   const mosqueId = params["mosqueId"] as string;
   const { user } = useAuth();
+  console.log("User in MemberPortalPage:", user);
 
   const [activeTab, setActiveTab] = React.useState<"donations" | "dues" | "pledges" | "statement">("donations");
   const [scope, setScope] = React.useState<"self" | "family">("self");

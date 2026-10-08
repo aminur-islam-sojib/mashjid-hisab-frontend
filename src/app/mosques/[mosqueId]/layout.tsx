@@ -25,18 +25,7 @@ function TenantShell({ children }: { children: React.ReactNode }) {
     }
   }, [user, isLoading, mustChangePassword, router, pathname]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-xs text-muted-foreground font-medium">Loading workspace...</p>
-      </div>
-    );
-  }
 
-  if (!user || mustChangePassword) {
-    return null;
-  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -54,7 +43,7 @@ function TenantShell({ children }: { children: React.ReactNode }) {
         <Header onToggleMobileMenu={() => setIsMobileNavOpen(true)} />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
+          <div className="  mx-auto space-y-6">
             {children}
           </div>
         </main>
@@ -69,9 +58,24 @@ export default function MosqueTenantLayout({
   children: React.ReactNode;
 }) {
   return (
-    <MosqueProvider>
-      <TenantShell>{children}</TenantShell>
-    </MosqueProvider>
+    <React.Suspense
+      fallback={
+        <div className="flex h-screen overflow-hidden bg-background">
+          <div className="w-64 border-r border-border bg-card hidden lg:block animate-pulse p-4" />
+          <div className="flex-1 flex flex-col">
+            <div className="h-16 border-b border-border bg-card animate-pulse" />
+            <div className="flex-1 p-6 space-y-4">
+              <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+              <div className="h-64 bg-muted rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <MosqueProvider>
+        <TenantShell>{children}</TenantShell>
+      </MosqueProvider>
+    </React.Suspense>
   );
 }
 

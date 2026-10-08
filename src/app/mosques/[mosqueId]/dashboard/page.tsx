@@ -25,35 +25,65 @@ import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+interface DashboardAccountItem {
+  id: string;
+  name: string;
+  type: string;
+  balance: string;
+  formattedBalance?: string;
+}
+
+interface DashboardFundItem {
+  id: string;
+  name: string;
+  type: string;
+  isRestricted: boolean;
+  balance: string;
+  formattedBalance?: string;
+}
+
 interface DashboardReportData {
-  accountsSummary: Array<{
-    id: string;
-    name: string;
-    type: string;
-    currentBalance: string;
-    openingBalance: string;
-  }>;
-  fundsSummary: Array<{
-    id: string;
-    name: string;
-    type: string;
-    isRestricted: boolean;
-    currentBalance: string;
-  }>;
-  totalAccountsBalance: string;
-  currentMonthSummary: {
-    totalIncome: string;
-    totalExpense: string;
-    net: string;
+  asOf: string;
+  currentPeriod: string;
+  balances?: {
+    totalAccounts: string;
+    formattedTotalAccounts?: string;
+    totalFunds: string;
+    formattedTotalFunds?: string;
+    accounts: DashboardAccountItem[];
+    funds: DashboardFundItem[];
   };
-  pendingApprovals: {
-    count: number;
-    totalAmount: string;
+  thisMonth?: {
+    period: string;
+    startDate: string;
+    endDate: string;
+    income: string;
+    formattedIncome?: string;
+    expense: string;
+    formattedExpense?: string;
+    netSurplus: string;
+    formattedNetSurplus?: string;
   };
-  duesSummary: {
+  pendingApprovals?: {
+    pendingDonations: number;
+    pendingExpenses: number;
+    openCollections: number;
+    totalPending: number;
+  };
+  duesCollection?: {
+    period: string;
     totalExpected: string;
+    formattedTotalExpected?: string;
     totalCollected: string;
-    outstanding: string;
+    formattedTotalCollected?: string;
+    collectionRatePercentage: number;
+    counts: {
+      UNPAID: number;
+      PARTIAL: number;
+      PAID: number;
+      WAIVED: number;
+      TOTAL: number;
+    };
   };
 }
 
@@ -61,6 +91,8 @@ export default function MosqueDashboardPage() {
   const params = useParams();
   const mosqueId = String(params?.["mosqueId"] || "");
   const { activeMosque, canAccess } = useMosque();
+
+  const isOversight = canAccess(["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER"]);
 
   const {
     data: dashboardData,
@@ -70,7 +102,7 @@ export default function MosqueDashboardPage() {
   } = useQuery<DashboardReportData>({
     queryKey: ["mosque", mosqueId, "dashboard-report"],
     queryFn: () => apiClient.get<DashboardReportData>(`/mosques/${mosqueId}/reports/dashboard`),
-    enabled: !!mosqueId,
+    enabled: !!mosqueId && isOversight,
   });
 
   return (
@@ -79,7 +111,30 @@ export default function MosqueDashboardPage() {
       <WelcomeBanner mosqueName={activeMosque?.name} />
 
       {/* 2. Loading / Error / KPI Section */}
-      {isLoading ? (
+      {!isOversight ? (
+        <Card className="p-8 text-center space-y-4 max-w-xl mx-auto">
+          <div className="w-12 h-12 bg-secondary text-primary rounded-full flex items-center justify-center mx-auto">
+            <Coins className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground">Welcome to {activeMosque?.name || "the Mosque"}</h2>
+          <p className="text-xs text-muted-foreground">
+            You are signed in as a community member. View your contribution history, active pledges, and public financial transparency.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3 pt-2">
+            <Link href={`/mosques/${mosqueId}/me`}>
+              <Button size="sm">My Giving Portal</Button>
+            </Link>
+            <Link href={`/mosques/${mosqueId}/donations`}>
+              <Button variant="outline" size="sm">Make a Donation</Button>
+            </Link>
+            {activeMosque?.slug && (
+              <Link href={`/m/${activeMosque.slug}`}>
+                <Button variant="outline" size="sm">Public Transparency</Button>
+              </Link>
+            )}
+          </div>
+        </Card>
+      ) : isLoading ? (
         <div className="py-12 flex flex-col items-center justify-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-xs text-muted-foreground font-medium">Aggregating treasury data...</p>
@@ -96,11 +151,11 @@ export default function MosqueDashboardPage() {
         <>
           {/* Executive KPI Cards */}
           <KpiCards
-            totalBalance={dashboardData?.totalAccountsBalance}
-            monthlyIncome={dashboardData?.currentMonthSummary.totalIncome}
-            monthlyExpense={dashboardData?.currentMonthSummary.totalExpense}
-            pendingCount={dashboardData?.pendingApprovals.count}
-            pendingAmount={dashboardData?.pendingApprovals.totalAmount}
+            totalBalance={dashboardData?.balances?.totalAccounts || "0"}
+            monthlyIncome={dashboardData?.thisMonth?.income || "0"}
+            monthlyExpense={dashboardData?.thisMonth?.expense || "0"}
+            pendingCount={dashboardData?.pendingApprovals?.totalPending || 0}
+            pendingAmount="0"
             mosqueId={mosqueId}
           />
 
@@ -180,15 +235,15 @@ export default function MosqueDashboardPage() {
               </div>
 
               <div className="divide-y divide-border/60 mt-2">
-                {dashboardData?.accountsSummary && dashboardData.accountsSummary.length > 0 ? (
-                  dashboardData.accountsSummary.map((acc) => (
+                {dashboardData?.balances?.accounts && dashboardData.balances.accounts.length > 0 ? (
+                  dashboardData.balances.accounts.map((acc) => (
                     <div key={acc.id} className="py-3 flex items-center justify-between text-xs">
                       <div>
                         <p className="font-semibold text-foreground">{acc.name}</p>
                         <p className="text-[10px] text-muted-foreground capitalize">{acc.type.toLowerCase().replace("_", " ")}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold font-heading text-foreground">{formatCurrency(acc.currentBalance)}</p>
+                        <p className="font-bold font-heading text-foreground">{formatCurrency(acc.balance)}</p>
                       </div>
                     </div>
                   ))
@@ -221,8 +276,8 @@ export default function MosqueDashboardPage() {
               </div>
 
               <div className="divide-y divide-border/60 mt-2">
-                {dashboardData?.fundsSummary && dashboardData.fundsSummary.length > 0 ? (
-                  dashboardData.fundsSummary.map((fund) => (
+                {dashboardData?.balances?.funds && dashboardData.balances.funds.length > 0 ? (
+                  dashboardData.balances.funds.map((fund) => (
                     <div key={fund.id} className="py-3 flex items-center justify-between text-xs">
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -236,7 +291,7 @@ export default function MosqueDashboardPage() {
                         <p className="text-[10px] text-muted-foreground capitalize">{fund.type.toLowerCase()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold font-heading text-foreground">{formatCurrency(fund.currentBalance)}</p>
+                        <p className="font-bold font-heading text-foreground">{formatCurrency(fund.balance)}</p>
                       </div>
                     </div>
                   ))

@@ -18,7 +18,7 @@ import { MosqueLogo } from "@/components/brand/logo";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 
-export default function VerifyReceiptPage() {
+function VerifyReceiptContent() {
   const params = useParams();
   const code = params["code"] as string;
 
@@ -150,5 +150,22 @@ export default function VerifyReceiptPage() {
         Mosque Management Cloud • Double-Entry Financial Governance
       </footer>
     </div>
+  );
+}
+
+export default function VerifyReceiptPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="text-center space-y-2">
+            <Loader2 className="w-8 h-8 animate-spin text-[#006B5B] mx-auto" />
+            <p className="text-xs text-gray-500 font-medium">Verifying receipt...</p>
+          </div>
+        </div>
+      }
+    >
+      <VerifyReceiptContent />
+    </React.Suspense>
   );
 }

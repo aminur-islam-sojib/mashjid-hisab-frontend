@@ -42,7 +42,7 @@ export function Sidebar({ className }: { className?: string }) {
   const { activeMosque, canAccess } = useMosque();
   const mosqueId = activeMosque?.id || "";
 
-  const base = `/mosques/${mosqueId}`;
+  const base = mosqueId ? `/mosques/${mosqueId}` : "/mosques";
 
   const navItems: NavItem[] = React.useMemo(
     () => [

@@ -22,7 +22,7 @@ import { MosqueLogo } from "@/components/brand/logo";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 
-export default function PublicMosqueTransparencyPage() {
+function PublicMosqueTransparencyContent() {
   const params = useParams();
   const slug = params["slug"] as string;
 
@@ -319,5 +319,22 @@ export default function PublicMosqueTransparencyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PublicMosqueTransparencyPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="text-center space-y-2">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-xs text-gray-500 font-medium">Loading transparency portal...</p>
+          </div>
+        </div>
+      }
+    >
+      <PublicMosqueTransparencyContent />
+    </React.Suspense>
   );
 }

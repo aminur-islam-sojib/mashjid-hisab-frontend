@@ -20,17 +20,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("h-full antialiased font-sans")}>
-      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
+    <html lang="en" suppressHydrationWarning className={cn("h-full antialiased font-sans")}>
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
         <QueryProvider>
-          <Suspense fallback={null}>
-            <AuthProvider>
-              <ThemeProvider>
-                {children}
-                <Toaster position="top-right" richColors />
-              </ThemeProvider>
-            </AuthProvider>
-          </Suspense>
+          <AuthProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster position="top-right" richColors />
+            </ThemeProvider>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>
