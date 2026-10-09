@@ -38,21 +38,31 @@ export default function PledgesPage() {
   const canRecord = canAccess(FINANCIAL_OPERATOR_ROLES);
 
   // Fetch pledges
-  const { data: pledges, isLoading } = useQuery<PledgeRecord[]>({
+  const { data: pledgesData, isLoading } = useQuery<{
+    data?: PledgeRecord[];
+    items?: PledgeRecord[];
+  } | PledgeRecord[]>({
     queryKey: ["pledges", mosqueId, statusFilter],
     queryFn: async () => {
       const p = new URLSearchParams();
       p.append("limit", "100");
       if (statusFilter) p.append("status", statusFilter);
 
-      return apiClient.get<PledgeRecord[]>(
+      return apiClient.get(
         `/mosques/${mosqueId}/pledges?${p.toString()}`
       );
     },
   });
 
+  const pledges: PledgeRecord[] = React.useMemo(() => {
+    if (!pledgesData) return [];
+    if (Array.isArray(pledgesData)) return pledgesData;
+    if (Array.isArray(pledgesData.data)) return pledgesData.data;
+    if (Array.isArray((pledgesData as any).items)) return (pledgesData as any).items;
+    return [];
+  }, [pledgesData]);
+
   const filteredPledges = React.useMemo(() => {
-    if (!pledges) return [];
     return pledges.filter((p) => {
       const q = search.toLowerCase();
       const donor =

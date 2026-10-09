@@ -22,7 +22,7 @@ import { formatCurrency } from "@/lib/money";
 import { useAuth } from "@/providers/auth-provider";
 import { useMosque } from "@/providers/mosque-provider";
 import { COLLECTION_OPERATOR_ROLES, FINANCIAL_OPERATOR_ROLES } from "@/lib/roles";
-import { CollectionSession } from "@/features/collections/types";
+import { CollectionSession, CollectionSessionsResponse } from "@/features/collections/types";
 import { StartCollectionDialog } from "@/features/collections/start-collection-dialog";
 import { VerifyCollectionDialog } from "@/features/collections/verify-collection-dialog";
 
@@ -42,21 +42,30 @@ export default function CollectionsPage() {
   const canVerify = canAccess(FINANCIAL_OPERATOR_ROLES);
 
   // Fetch collections
-  const { data: collections, isLoading } = useQuery<CollectionSession[]>({
+  const { data: collectionsData, isLoading } = useQuery<
+    CollectionSessionsResponse | CollectionSession[]
+  >({
     queryKey: ["collections", mosqueId, statusFilter],
     queryFn: async () => {
       const p = new URLSearchParams();
       p.append("limit", "50");
       if (statusFilter) p.append("status", statusFilter);
 
-      return apiClient.get<CollectionSession[]>(
+      return apiClient.get<CollectionSessionsResponse | CollectionSession[]>(
         `/mosques/${mosqueId}/collections?${p.toString()}`
       );
     },
   });
 
+  const collections: CollectionSession[] = React.useMemo(() => {
+    if (!collectionsData) return [];
+    if (Array.isArray(collectionsData)) return collectionsData;
+    if (Array.isArray(collectionsData.data)) return collectionsData.data;
+    if (Array.isArray((collectionsData as any).items)) return (collectionsData as any).items;
+    return [];
+  }, [collectionsData]);
+
   const filteredSessions = React.useMemo(() => {
-    if (!collections) return [];
     return collections.filter((s) => {
       const q = search.toLowerCase();
       return (

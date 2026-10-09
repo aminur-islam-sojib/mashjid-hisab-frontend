@@ -46,3 +46,14 @@ export interface CollectionSession {
   } | null;
 }
 
+export interface CollectionSessionsResponse {
+  data: CollectionSession[];
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+
