@@ -79,14 +79,27 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
     setIsReopenModalOpen(false);
   });
 
-  const handleExport = () => {
+  const handleExportCsv = () => {
+    let reportType: "INCOME_EXPENSE" | "BALANCES" | "DONORS" = "INCOME_EXPENSE";
+    if (activeTab === "balances") {
+      reportType = "BALANCES";
+    } else if (activeTab === "donors") {
+      reportType = "DONORS";
+    }
+
     exportMutation.mutate({
-      reportType: "INCOME_EXPENSE",
+      reportType,
       format: "CSV",
       startDate,
       endDate,
       groupBy,
+      donorGroupBy,
+      donorStatus,
     });
+  };
+
+  const handlePrintPdf = () => {
+    window.print();
   };
 
   const handleClosePeriod = () => {
@@ -110,12 +123,13 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
     <div className="space-y-6">
       {/* Header */}
       <ReportsHeader
-        onExport={handleExport}
+        onExportCsv={handleExportCsv}
+        onPrintPdf={handlePrintPdf}
         isExporting={exportMutation.isPending}
       />
 
-      {/* Tabs */}
-      <div className="flex items-center p-1 bg-gray-100 rounded-lg w-fit">
+      {/* Tabs (Hidden during print) */}
+      <div className="flex items-center p-1 bg-gray-100 rounded-lg w-fit print:hidden">
         <button
           type="button"
           onClick={() => setActiveTab("income-expense")}
