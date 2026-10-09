@@ -83,3 +83,104 @@ export function formatCurrency(
     return `${symbol}0.00`;
   }
 }
+
+const ONES = [
+  "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+  "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
+];
+
+const TENS = [
+  "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety",
+];
+
+function convertLessThanThousand(n: bigint): string {
+  if (n === BigInt(0)) return "";
+  let result = "";
+  if (n >= BigInt(100)) {
+    result += ONES[Number(n / BigInt(100))] + " Hundred";
+    n = n % BigInt(100);
+    if (n > BigInt(0)) result += " ";
+  }
+  if (n >= BigInt(20)) {
+    result += TENS[Number(n / BigInt(10))];
+    if (n % BigInt(10) > BigInt(0)) {
+      result += "-" + ONES[Number(n % BigInt(10))];
+    }
+  } else if (n > BigInt(0)) {
+    result += ONES[Number(n)];
+  }
+  return result;
+}
+
+function numberToWordsSouthAsian(num: bigint): string {
+  if (num === BigInt(0)) return "Zero";
+
+  let n = num < BigInt(0) ? -num : num;
+  let words = "";
+
+  const crore = n / BigInt(10000000);
+  n = n % BigInt(10000000);
+
+  const lakh = n / BigInt(100000);
+  n = n % BigInt(100000);
+
+  const thousand = n / BigInt(1000);
+  n = n % BigInt(1000);
+
+  const remainder = n;
+
+  if (crore > BigInt(0)) {
+    words += (crore >= BigInt(100) ? numberToWordsSouthAsian(crore) : convertLessThanThousand(crore)) + " Crore ";
+  }
+
+  if (lakh > BigInt(0)) {
+    words += convertLessThanThousand(lakh) + " Lakh ";
+  }
+
+  if (thousand > BigInt(0)) {
+    words += convertLessThanThousand(thousand) + " Thousand ";
+  }
+
+  if (remainder > BigInt(0)) {
+    words += convertLessThanThousand(remainder);
+  }
+
+  return words.trim();
+}
+
+/**
+ * Converts integer poisha (string, number, or bigint) into words in Taka & Poisha
+ * using standard Bangladeshi / South Asian financial denomination convention.
+ * Example: 75050 -> "Seven Hundred Fifty Taka and Fifty Poisha Only"
+ */
+export function poishaToWords(poisha: string | number | bigint | null | undefined): string {
+  if (poisha === null || poisha === undefined) return "Zero Taka Only";
+  try {
+    const raw = typeof poisha === "bigint" ? poisha : BigInt(String(poisha).trim() || "0");
+    const isNegative = raw < BigInt(0);
+    const abs = isNegative ? -raw : raw;
+    const major = abs / BigInt(100);
+    const minor = abs % BigInt(100);
+
+    const majorWords = numberToWordsSouthAsian(major);
+    const prefix = isNegative ? "Negative " : "";
+
+    if (major === BigInt(0) && minor === BigInt(0)) {
+      return "Zero Taka Only";
+    }
+
+    if (minor === BigInt(0)) {
+      return `${prefix}${majorWords} Taka Only`;
+    }
+
+    const minorWords = convertLessThanThousand(minor);
+    if (major === BigInt(0)) {
+      return `${prefix}${minorWords} Poisha Only`;
+    }
+
+    return `${prefix}${majorWords} Taka and ${minorWords} Poisha Only`;
+  } catch {
+    return "Zero Taka Only";
+  }
+}
+
