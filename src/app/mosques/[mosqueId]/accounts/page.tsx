@@ -28,11 +28,19 @@ export default function AccountsPage() {
   const [isReconcileDialogOpen, setIsReconcileDialogOpen] = React.useState(false);
   const [reconcilingAccount, setReconcilingAccount] = React.useState<AccountItem | null>(null);
 
-  const { data: accounts, isLoading, isError, refetch } = useQuery<AccountItem[]>({
+  const { data: rawAccounts, isLoading, isError, refetch } = useQuery<any>({
     queryKey: ["mosque", mosqueId, "accounts"],
-    queryFn: () => apiClient.get<AccountItem[]>(`/mosques/${mosqueId}/accounts`),
+    queryFn: () => apiClient.get<any>(`/mosques/${mosqueId}/accounts`),
     enabled: !!mosqueId,
   });
+
+  const accounts: AccountItem[] = React.useMemo(() => {
+    if (!rawAccounts) return [];
+    if (Array.isArray(rawAccounts)) return rawAccounts;
+    if (Array.isArray(rawAccounts.accounts)) return rawAccounts.accounts;
+    if (Array.isArray(rawAccounts.data)) return rawAccounts.data;
+    return [];
+  }, [rawAccounts]);
 
   const archiveMutation = useMutation({
     mutationFn: (accountId: string) =>

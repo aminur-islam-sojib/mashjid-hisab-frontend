@@ -25,11 +25,19 @@ export default function FundsPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingFund, setEditingFund] = React.useState<FundItem | null>(null);
 
-  const { data: funds, isLoading, isError, refetch } = useQuery<FundItem[]>({
+  const { data: rawFunds, isLoading, isError, refetch } = useQuery<any>({
     queryKey: ["mosque", mosqueId, "funds"],
-    queryFn: () => apiClient.get<FundItem[]>(`/mosques/${mosqueId}/funds`),
+    queryFn: () => apiClient.get<any>(`/mosques/${mosqueId}/funds`),
     enabled: !!mosqueId,
   });
+
+  const funds: FundItem[] = React.useMemo(() => {
+    if (!rawFunds) return [];
+    if (Array.isArray(rawFunds)) return rawFunds;
+    if (Array.isArray(rawFunds.funds)) return rawFunds.funds;
+    if (Array.isArray(rawFunds.data)) return rawFunds.data;
+    return [];
+  }, [rawFunds]);
 
   const archiveMutation = useMutation({
     mutationFn: (fundId: string) =>
@@ -105,7 +113,12 @@ export default function FundsPage() {
               {funds.map((fund) => (
                 <TableRow key={fund.id}>
                   <TableCell className="font-semibold text-foreground">
-                    {fund.name}
+                    <div>{fund.name}</div>
+                    {fund.categoryCount !== undefined && fund.categoryCount > 0 && (
+                      <span className="text-[10px] text-muted-foreground font-normal">
+                        {fund.categoryCount} linked {fund.categoryCount === 1 ? "category" : "categories"}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <span className="text-xs text-muted-foreground font-medium capitalize">
@@ -129,6 +142,8 @@ export default function FundsPage() {
                   <TableCell className="text-right font-bold font-heading text-foreground">
                     {fund.currentBalance !== undefined
                       ? formatCurrency(fund.currentBalance)
+                      : fund.balance !== undefined
+                      ? formatCurrency(fund.balance)
                       : "—"}
                   </TableCell>
                   {isAdmin && (

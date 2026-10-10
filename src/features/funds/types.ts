@@ -8,7 +8,10 @@ export interface FundItem {
   isRestricted: boolean;
   description: string | null;
   isArchived: boolean;
+  balance?: string;
   currentBalance?: string;
+  categoryCount?: number;
   createdAt?: string;
+  updatedAt?: string;
 }
 
