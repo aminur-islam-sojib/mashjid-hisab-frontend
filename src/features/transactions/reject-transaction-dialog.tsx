@@ -61,7 +61,8 @@ export function RejectTransactionDialog({
       toast.success("Transaction rejected.");
       queryClient.invalidateQueries({ queryKey: ["transactions", mosqueId] });
       queryClient.invalidateQueries({ queryKey: ["pending-transactions", mosqueId] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-kpis", mosqueId] });
+      queryClient.invalidateQueries({ queryKey: ["mosque", mosqueId] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-detail", mosqueId] });
       onClose();
     },
     onError: (err: any) => {

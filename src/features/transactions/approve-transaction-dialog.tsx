@@ -41,7 +41,8 @@ export function ApproveTransactionDialog({
       toast.success("Transaction approved and posted to ledger.");
       queryClient.invalidateQueries({ queryKey: ["transactions", mosqueId] });
       queryClient.invalidateQueries({ queryKey: ["pending-transactions", mosqueId] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-kpis", mosqueId] });
+      queryClient.invalidateQueries({ queryKey: ["mosque", mosqueId] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-detail", mosqueId] });
       queryClient.invalidateQueries({ queryKey: ["accounts", mosqueId] });
       queryClient.invalidateQueries({ queryKey: ["funds", mosqueId] });
       onClose();

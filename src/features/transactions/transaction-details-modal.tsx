@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { UnifiedTransactionItem } from "./types";
@@ -26,6 +27,8 @@ interface TransactionDetailsModalProps {
   onClose: () => void;
   mosqueId: string;
   transactionId: string | null;
+  onApprove?: (tx: UnifiedTransactionItem) => void;
+  onReject?: (tx: UnifiedTransactionItem) => void;
 }
 
 export function TransactionDetailsModal({
@@ -33,6 +36,8 @@ export function TransactionDetailsModal({
   onClose,
   mosqueId,
   transactionId,
+  onApprove,
+  onReject,
 }: TransactionDetailsModalProps) {
   const { data: transaction, isLoading } = useQuery<UnifiedTransactionItem>({
     queryKey: ["transaction-detail", mosqueId, transactionId],
@@ -231,6 +236,49 @@ export function TransactionDetailsModal({
               )}
             </div>
           </div>
+
+          {/* Pending Approval Action Controls */}
+          {(transaction.status === "PENDING" || transaction.status === "PENDING_APPROVAL") && (
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-amber-900">Pending Dual-Control Verification</p>
+                <p className="text-[11px] text-amber-700 mt-0.5">
+                  This transaction is awaiting verification and posting by an authorized mosque officer.
+                </p>
+              </div>
+              {(onApprove || onReject) && (
+                <div className="flex items-center space-x-2 shrink-0">
+                  {onReject && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs text-red-600 hover:bg-red-50 hover:border-red-200"
+                      onClick={() => {
+                        onClose();
+                        onReject(transaction);
+                      }}
+                    >
+                      <XCircle className="w-3.5 h-3.5 mr-1" />
+                      Reject
+                    </Button>
+                  )}
+                  {onApprove && (
+                    <Button
+                      size="sm"
+                      className="text-xs bg-[#006B5B] hover:bg-[#005246] text-white"
+                      onClick={() => {
+                        onClose();
+                        onApprove(transaction);
+                      }}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                      Approve
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </Modal>

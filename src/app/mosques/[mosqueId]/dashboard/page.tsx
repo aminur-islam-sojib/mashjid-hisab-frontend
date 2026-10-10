@@ -70,6 +70,8 @@ interface DashboardReportData {
     pendingExpenses: number;
     openCollections: number;
     totalPending: number;
+    totalPendingAmount?: string;
+    formattedTotalPendingAmount?: string;
   };
   duesCollection?: {
     period: string;
@@ -156,9 +158,38 @@ export default function MosqueDashboardPage() {
             monthlyIncome={dashboardData?.thisMonth?.income || "0"}
             monthlyExpense={dashboardData?.thisMonth?.expense || "0"}
             pendingCount={dashboardData?.pendingApprovals?.totalPending || 0}
-            pendingAmount="0"
+            pendingAmount={dashboardData?.pendingApprovals?.totalPendingAmount || "0"}
             mosqueId={mosqueId}
           />
+
+          {/* Pending Approvals Callout Banner */}
+          {(dashboardData?.pendingApprovals?.totalPending || 0) > 0 && (
+            <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
+                    {dashboardData?.pendingApprovals?.totalPending} Pending Approval{dashboardData?.pendingApprovals?.totalPending === 1 ? "" : "s"} Awaiting Action
+                  </h4>
+                  <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                    {dashboardData?.pendingApprovals?.pendingDonations || 0} donation{(dashboardData?.pendingApprovals?.pendingDonations || 0) === 1 ? "" : "s"}, {dashboardData?.pendingApprovals?.pendingExpenses || 0} expense{(dashboardData?.pendingApprovals?.pendingExpenses || 0) === 1 ? "" : "s"}
+                    {dashboardData?.pendingApprovals?.totalPendingAmount && dashboardData.pendingApprovals.totalPendingAmount !== "0" ? ` totaling ${formatCurrency(dashboardData.pendingApprovals.totalPendingAmount)}` : ""} requiring dual-control verification.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href={`/mosques/${mosqueId}/transactions?tab=pending`}
+                className="shrink-0"
+              >
+                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-medium">
+                  Review Pending Queue
+                  <ArrowRight className="w-4 h-4 ml-1.5" />
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Quick Actions Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

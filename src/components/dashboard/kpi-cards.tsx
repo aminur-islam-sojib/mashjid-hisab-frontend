@@ -116,7 +116,7 @@ export function KpiCards({
           </div>
           {mosqueId && (
             <Link
-              href={`/mosques/${mosqueId}/transactions`}
+              href={`/mosques/${mosqueId}/transactions?tab=pending`}
               className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 self-center hover:underline shrink-0 pl-1"
             >
               Review

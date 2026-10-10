@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   History,
@@ -35,12 +35,32 @@ import { RejectTransactionDialog } from "@/features/transactions/reject-transact
 
 export default function TransactionsPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const mosqueId = params["mosqueId"] as string;
   const { user } = useAuth();
   const { canAccess } = useMosque();
 
   // Tab State
-  const [activeTab, setActiveTab] = React.useState<"ledger" | "pending">("ledger");
+  const tabParam = searchParams?.get("tab");
+  const [activeTab, setActiveTab] = React.useState<"ledger" | "pending">(
+    tabParam === "pending" ? "pending" : "ledger"
+  );
+
+  React.useEffect(() => {
+    if (tabParam === "pending") {
+      setActiveTab("pending");
+    } else if (tabParam === "ledger") {
+      setActiveTab("ledger");
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (tab: "ledger" | "pending") => {
+    setActiveTab(tab);
+    const newParams = new URLSearchParams(searchParams?.toString() || "");
+    newParams.set("tab", tab);
+    router.replace(`?${newParams.toString()}`, { scroll: false });
+  };
 
   // Ledger Filter State
   const [search, setSearch] = React.useState("");
@@ -175,7 +195,7 @@ export default function TransactionsPage() {
         <div className="flex items-center p-1 bg-gray-100 rounded-lg">
           <button
             type="button"
-            onClick={() => setActiveTab("ledger")}
+            onClick={() => handleTabChange("ledger")}
             className={`flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-md transition-all ${
               activeTab === "ledger"
                 ? "bg-white text-gray-900 shadow-xs"
@@ -189,7 +209,7 @@ export default function TransactionsPage() {
           {isApprover && (
             <button
               type="button"
-              onClick={() => setActiveTab("pending")}
+              onClick={() => handleTabChange("pending")}
               className={`flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-md transition-all ${
                 activeTab === "pending"
                   ? "bg-white text-gray-900 shadow-xs"
@@ -211,6 +231,27 @@ export default function TransactionsPage() {
       {/* Tab 1: Master Ledger */}
       {activeTab === "ledger" && (
         <div className="space-y-4">
+          {/* Pending Items Notice in Ledger */}
+          {pendingCount > 0 && isApprover && (
+            <div className="p-3.5 bg-amber-50/90 border border-amber-200/90 rounded-xl flex items-center justify-between gap-3 text-amber-900 text-sm shadow-xs">
+              <div className="flex items-center space-x-2.5">
+                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  <strong>{pendingCount} transaction{pendingCount > 1 ? "s" : ""}</strong> pending verification in the dual-control queue.
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs border-amber-300 text-amber-900 hover:bg-amber-100/80 shrink-0 h-8 font-medium"
+                onClick={() => handleTabChange("pending")}
+              >
+                Review Approval Queue
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            </div>
+          )}
+
           {/* Filters Bar */}
           <div className="p-4 bg-white rounded-xl border border-gray-200/80 shadow-xs space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
@@ -384,19 +425,43 @@ export default function TransactionsPage() {
                           {formatCurrency(tx.amount)}
                         </Td>
                         <Td>{getStatusBadge(tx.status)}</Td>
-                        <Td className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-[#006B5B] hover:bg-[#E6F4F0]"
-                            onClick={() => {
-                              setSelectedTxId(tx.id);
-                              setIsDetailOpen(true);
-                            }}
-                          >
-                            <Eye className="w-3.5 h-3.5 mr-1" />
-                            Timeline
-                          </Button>
+                        <Td className="text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1.5">
+                            {(tx.status === "PENDING" || tx.status === "PENDING_APPROVAL") && isApprover && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs h-7 px-2 text-red-600 hover:bg-red-50 hover:border-red-200"
+                                  onClick={() => setTxToReject(tx)}
+                                >
+                                  <XCircle className="w-3 h-3 mr-1" />
+                                  Reject
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="text-xs h-7 px-2 bg-[#006B5B] hover:bg-[#005246] text-white"
+                                  disabled={Boolean(user?.id && tx.createdById && user.id === tx.createdById)}
+                                  onClick={() => setTxToApprove(tx)}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Approve
+                                </Button>
+                              </>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs h-7 px-2 text-[#006B5B] hover:bg-[#E6F4F0]"
+                              onClick={() => {
+                                setSelectedTxId(tx.id);
+                                setIsDetailOpen(true);
+                              }}
+                            >
+                              <Eye className="w-3.5 h-3.5 mr-1" />
+                              Details
+                            </Button>
+                          </div>
                         </Td>
                       </Tr>
                     );
@@ -511,6 +576,18 @@ export default function TransactionsPage() {
                         <Td className="text-right whitespace-nowrap">
                           <div className="flex items-center justify-end space-x-2">
                             <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-[#006B5B] hover:bg-[#E6F4F0]"
+                              onClick={() => {
+                                setSelectedTxId(tx.id);
+                                setIsDetailOpen(true);
+                              }}
+                            >
+                              <Eye className="w-3.5 h-3.5 mr-1" />
+                              Details
+                            </Button>
+                            <Button
                               variant="outline"
                               size="sm"
                               className="text-xs text-red-600 hover:bg-red-50 hover:border-red-200"
@@ -554,6 +631,8 @@ export default function TransactionsPage() {
         }}
         mosqueId={mosqueId}
         transactionId={selectedTxId}
+        onApprove={isApprover ? (tx) => setTxToApprove(tx) : undefined}
+        onReject={isApprover ? (tx) => setTxToReject(tx) : undefined}
       />
 
       {/* Approve Dialog */}
