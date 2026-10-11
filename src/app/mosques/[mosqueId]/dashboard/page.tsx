@@ -69,6 +69,7 @@ interface DashboardReportData {
     pendingDonations: number;
     pendingExpenses: number;
     openCollections: number;
+    countingSessionsToVerify?: number;
     totalPending: number;
     totalPendingAmount?: string;
     formattedTotalPendingAmount?: string;
@@ -162,32 +163,66 @@ export default function MosqueDashboardPage() {
             mosqueId={mosqueId}
           />
 
-          {/* Pending Approvals Callout Banner */}
-          {(dashboardData?.pendingApprovals?.totalPending || 0) > 0 && (
-            <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <AlertCircle className="w-5 h-5" />
+          {/* Attention Strip: Pending Items */}
+          {((dashboardData?.pendingApprovals?.totalPending || 0) > 0 ||
+            (dashboardData?.pendingApprovals?.countingSessionsToVerify || 0) > 0) && (
+            <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-xl p-4 space-y-3 shadow-xs">
+              {/* Item 1: Pending Transactions (Donations + Expenses) */}
+              {(dashboardData?.pendingApprovals?.totalPending || 0) > 0 && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                      <AlertCircle className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
+                        {dashboardData?.pendingApprovals?.totalPending} Transaction{dashboardData?.pendingApprovals?.totalPending === 1 ? "" : "s"} Awaiting Approval
+                      </h4>
+                      <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                        {dashboardData?.pendingApprovals?.pendingDonations || 0} donation{(dashboardData?.pendingApprovals?.pendingDonations || 0) === 1 ? "" : "s"}, {dashboardData?.pendingApprovals?.pendingExpenses || 0} expense{(dashboardData?.pendingApprovals?.pendingExpenses || 0) === 1 ? "" : "s"}
+                        {dashboardData?.pendingApprovals?.totalPendingAmount && dashboardData.pendingApprovals.totalPendingAmount !== "0" ? ` totaling ${formatCurrency(dashboardData.pendingApprovals.totalPendingAmount)}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/mosques/${mosqueId}/transactions?tab=pending`}
+                    className="shrink-0 self-end sm:self-center"
+                  >
+                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs h-8">
+                      Review Pending Queue
+                      <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                    </Button>
+                  </Link>
                 </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
-                    {dashboardData?.pendingApprovals?.totalPending} Pending Approval{dashboardData?.pendingApprovals?.totalPending === 1 ? "" : "s"} Awaiting Action
-                  </h4>
-                  <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
-                    {dashboardData?.pendingApprovals?.pendingDonations || 0} donation{(dashboardData?.pendingApprovals?.pendingDonations || 0) === 1 ? "" : "s"}, {dashboardData?.pendingApprovals?.pendingExpenses || 0} expense{(dashboardData?.pendingApprovals?.pendingExpenses || 0) === 1 ? "" : "s"}
-                    {dashboardData?.pendingApprovals?.totalPendingAmount && dashboardData.pendingApprovals.totalPendingAmount !== "0" ? ` totaling ${formatCurrency(dashboardData.pendingApprovals.totalPendingAmount)}` : ""} requiring dual-control verification.
-                  </p>
+              )}
+
+              {/* Item 2: Box Counting Sessions to Verify */}
+              {(dashboardData?.pendingApprovals?.countingSessionsToVerify || 0) > 0 && (
+                <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${(dashboardData?.pendingApprovals?.totalPending || 0) > 0 ? "pt-3 border-t border-amber-200/60 dark:border-amber-800/60" : ""}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                      <Receipt className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
+                        {dashboardData?.pendingApprovals?.countingSessionsToVerify} Box Count{dashboardData?.pendingApprovals?.countingSessionsToVerify === 1 ? "" : "s"} to Verify
+                      </h4>
+                      <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                        Counting session{dashboardData?.pendingApprovals?.countingSessionsToVerify === 1 ? "" : "s"} awaiting verification before posting to ledger.
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/mosques/${mosqueId}/collections`}
+                    className="shrink-0 self-end sm:self-center"
+                  >
+                    <Button size="sm" variant="outline" className="border-teal-600 text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:border-teal-400 text-xs h-8">
+                      Verify Box Counts
+                      <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-              <Link
-                href={`/mosques/${mosqueId}/transactions?tab=pending`}
-                className="shrink-0"
-              >
-                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-medium">
-                  Review Pending Queue
-                  <ArrowRight className="w-4 h-4 ml-1.5" />
-                </Button>
-              </Link>
+              )}
             </div>
           )}
 
