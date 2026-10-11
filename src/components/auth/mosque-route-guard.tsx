@@ -24,7 +24,7 @@ function RouteGuardFallback() {
   );
 }
 
-export function MosqueRouteGuard({ children }: MosqueRouteGuardProps) {
+export function MosqueRouteGuard() {
   const pathname = usePathname();
   const router = useRouter();
   const { activeRole, activeMosque } = useMosque();
@@ -63,11 +63,15 @@ export function MosqueRouteGuard({ children }: MosqueRouteGuardProps) {
     }
   }, [isAuthLoading, isAllowed, mosqueId, activeRole, pathname, router]);
 
-  // If loading or unauthorized, do NOT render children (prevents 403 API calls)
-  if (isAuthLoading || isAllowed === false || isAllowed === null) {
-    return <RouteGuardFallback />;
+  // If unauthorized on client, render an overlay while redirect completes
+  if (isAllowed === false) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center">
+        <RouteGuardFallback />
+      </div>
+    );
   }
 
-  return <>{children}</>;
+  return null;
 }
 
