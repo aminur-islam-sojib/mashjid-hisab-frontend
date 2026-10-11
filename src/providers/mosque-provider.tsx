@@ -6,6 +6,7 @@ import { useAuth } from "./auth-provider";
 import { setActiveMosqueId } from "@/lib/api-client";
 import { MosqueBasic, UserMembership } from "@/types/auth";
 import { Role } from "@/types/api";
+import { getRoleHome } from "@/lib/roles";
 
 interface MosqueContextType {
   activeMosque: MosqueBasic | null;
@@ -58,9 +59,13 @@ export function MosqueProvider({ children }: { children: React.ReactNode }) {
   const switchMosque = React.useCallback(
     (mosqueId: string) => {
       setActiveMosqueId(mosqueId);
-      router.push(`/mosques/${mosqueId}/dashboard`);
+      const targetMembership = memberships?.find(
+        (m) => m.mosqueId === mosqueId || m.mosque?.id === mosqueId
+      );
+      const targetRole = targetMembership?.role ?? null;
+      router.push(getRoleHome(mosqueId, targetRole));
     },
-    [router]
+    [router, memberships]
   );
 
   const canAccess = React.useCallback(

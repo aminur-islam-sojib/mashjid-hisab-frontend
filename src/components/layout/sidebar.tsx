@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Receipt,
@@ -23,146 +24,231 @@ import {
   Settings,
   MapPin,
   ChevronRight,
+  ChevronDown,
   User,
+  SlidersHorizontal,
 } from "lucide-react";
 import { MosqueLogo } from "@/components/brand/logo";
 import { useMosque } from "@/providers/mosque-provider";
 import { Role } from "@/types/api";
 import {
-  OVERSIGHT_ROLES,
-  OPERATIONAL_ROLES,
-  COLLECTION_OPERATOR_ROLES,
-  ADMIN_ONLY_ROLES,
+  ROUTE_PERMISSIONS,
+  FINANCIAL_OPERATOR_ROLES,
+  getRoleHome,
 } from "@/lib/roles";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api-client";
+import { PendingQueueResult } from "@/features/transactions/types";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   allowedRoles?: readonly Role[];
+  badge?: number;
+}
+
+interface NavSection {
+  title?: string;
+  items: NavItem[];
 }
 
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
-  const { activeMosque, canAccess } = useMosque();
+  const { activeMosque, activeRole, canAccess } = useMosque();
   const mosqueId = activeMosque?.id || "";
 
   const base = mosqueId ? `/mosques/${mosqueId}` : "/mosques";
+  const homeHref = mosqueId ? getRoleHome(mosqueId, activeRole) : "/mosques";
 
-  const navItems: NavItem[] = React.useMemo(
+  // Check if current user is an approver to fetch live pending badge
+  const isApprover = canAccess(FINANCIAL_OPERATOR_ROLES);
+  const { data: pendingData } = useQuery<PendingQueueResult>({
+    queryKey: ["pending-transactions", mosqueId],
+    queryFn: () =>
+      apiClient.get<PendingQueueResult>(
+        `/mosques/${mosqueId}/transactions/pending?limit=1`
+      ),
+    enabled: Boolean(mosqueId) && isApprover,
+    refetchInterval: 30000,
+  });
+  const pendingCount = pendingData?.totalPending || 0;
+
+  // Auto-expand setup accordion if on a setup page
+  const isSetupRouteActive = React.useMemo(() => {
+    return ["/accounts", "/funds", "/categories", "/settings"].some((path) =>
+      pathname?.startsWith(`${base}${path}`)
+    );
+  }, [pathname, base]);
+
+  const [isSetupOpen, setIsSetupOpen] = React.useState(isSetupRouteActive);
+
+  React.useEffect(() => {
+    if (isSetupRouteActive) {
+      setIsSetupOpen(true);
+    }
+  }, [isSetupRouteActive]);
+
+  // Primary navigation grouped into 5 core areas
+  const sections: NavSection[] = React.useMemo(
     () => [
       {
-        title: "Dashboard",
-        href: `${base}/dashboard`,
-        icon: LayoutDashboard,
+        // Top Level: Home & Approvals
+        items: [
+          {
+            title: "Dashboard",
+            href: `${base}/dashboard`,
+            icon: LayoutDashboard,
+            allowedRoles: ROUTE_PERMISSIONS["dashboard"],
+          },
+          {
+            title: "Approvals",
+            href: `${base}/approvals`,
+            icon: CheckSquare,
+            allowedRoles: ROUTE_PERMISSIONS["approvals"],
+            badge: pendingCount,
+          },
+        ],
       },
       {
-        title: "Master Ledger",
-        href: `${base}/transactions`,
-        icon: History,
-        allowedRoles: OVERSIGHT_ROLES,
+        title: "Daily Work",
+        items: [
+          {
+            title: "Donations",
+            href: `${base}/donations`,
+            icon: Coins,
+            allowedRoles: ROUTE_PERMISSIONS["donations"],
+          },
+          {
+            title: "Expenses",
+            href: `${base}/expenses`,
+            icon: TrendingDown,
+            allowedRoles: ROUTE_PERMISSIONS["expenses"],
+          },
+          {
+            title: "Transfers",
+            href: `${base}/transfers`,
+            icon: ArrowLeftRight,
+            allowedRoles: ROUTE_PERMISSIONS["transfers"],
+          },
+          {
+            title: "Box Counting",
+            href: `${base}/collections`,
+            icon: Receipt,
+            allowedRoles: ROUTE_PERMISSIONS["collections"],
+          },
+        ],
       },
       {
-        title: "Donations",
-        href: `${base}/donations`,
-        icon: Coins,
-        allowedRoles: OPERATIONAL_ROLES,
+        title: "People",
+        items: [
+          {
+            title: "Members",
+            href: `${base}/members`,
+            icon: Users,
+            allowedRoles: ROUTE_PERMISSIONS["members"],
+          },
+          {
+            title: "Families",
+            href: `${base}/families`,
+            icon: Home,
+            allowedRoles: ROUTE_PERMISSIONS["families"],
+          },
+          {
+            title: "Chanda & Dues",
+            href: `${base}/chanda`,
+            icon: CalendarHeart,
+            allowedRoles: ROUTE_PERMISSIONS["chanda"],
+          },
+          {
+            title: "Pledges",
+            href: `${base}/pledges`,
+            icon: HeartHandshake,
+            allowedRoles: ROUTE_PERMISSIONS["pledges"],
+          },
+          {
+            title: "Campaigns",
+            href: `${base}/campaigns`,
+            icon: CheckSquare,
+            allowedRoles: ROUTE_PERMISSIONS["campaigns"],
+          },
+        ],
       },
       {
-        title: "Expenses",
-        href: `${base}/expenses`,
-        icon: TrendingDown,
-        allowedRoles: OPERATIONAL_ROLES,
+        title: "Records",
+        items: [
+          {
+            title: "Master Ledger",
+            href: `${base}/transactions`,
+            icon: History,
+            allowedRoles: ROUTE_PERMISSIONS["transactions"],
+          },
+          {
+            title: "Reports",
+            href: `${base}/reports`,
+            icon: FileText,
+            allowedRoles: ROUTE_PERMISSIONS["reports"],
+          },
+          {
+            title: "Audit Logs",
+            href: `${base}/audit-logs`,
+            icon: ShieldCheck,
+            allowedRoles: ROUTE_PERMISSIONS["audit-logs"],
+          },
+        ],
       },
-      {
-        title: "Transfers",
-        href: `${base}/transfers`,
-        icon: ArrowLeftRight,
-        allowedRoles: OVERSIGHT_ROLES,
-      },
-      {
-        title: "Counting Sessions",
-        href: `${base}/collections`,
-        icon: Receipt,
-        allowedRoles: COLLECTION_OPERATOR_ROLES,
-      },
-      {
-        title: "Chanda & Dues",
-        href: `${base}/chanda`,
-        icon: CalendarHeart,
-        allowedRoles: OVERSIGHT_ROLES,
-      },
-      {
-        title: "Pledges",
-        href: `${base}/pledges`,
-        icon: HeartHandshake,
-      },
-      {
-        title: "Campaigns",
-        href: `${base}/campaigns`,
-        icon: CheckSquare,
-      },
+    ],
+    [base, pendingCount]
+  );
+
+  // Setup Items (Collapsible Accordion)
+  const setupItems: NavItem[] = React.useMemo(
+    () => [
       {
         title: "Accounts",
         href: `${base}/accounts`,
         icon: Landmark,
-        allowedRoles: OVERSIGHT_ROLES,
+        allowedRoles: ROUTE_PERMISSIONS["accounts"],
       },
       {
         title: "Funds",
         href: `${base}/funds`,
         icon: PiggyBank,
-        allowedRoles: OVERSIGHT_ROLES,
+        allowedRoles: ROUTE_PERMISSIONS["funds"],
       },
       {
         title: "Categories",
         href: `${base}/categories`,
         icon: Tags,
-        allowedRoles: OPERATIONAL_ROLES,
-      },
-      {
-        title: "Members",
-        href: `${base}/members`,
-        icon: Users,
-        allowedRoles: OVERSIGHT_ROLES,
-      },
-      {
-        title: "Families",
-        href: `${base}/families`,
-        icon: Home,
-      },
-      {
-        title: "Reports",
-        href: `${base}/reports`,
-        icon: FileText,
-        allowedRoles: OVERSIGHT_ROLES,
-      },
-      {
-        title: "My Giving Portal",
-        href: `${base}/me`,
-        icon: User,
-      },
-      {
-        title: "Audit Logs",
-        href: `${base}/audit-logs`,
-        icon: ShieldCheck,
-        allowedRoles: ADMIN_ONLY_ROLES,
+        allowedRoles: ROUTE_PERMISSIONS["categories"],
       },
       {
         title: "Settings",
         href: `${base}/settings`,
         icon: Settings,
-        allowedRoles: ADMIN_ONLY_ROLES,
+        allowedRoles: ROUTE_PERMISSIONS["settings"],
       },
     ],
     [base]
   );
 
-  const visibleItems = navItems.filter((item) => {
+  // Portal Item (Accessible to everyone)
+  const portalItem: NavItem = React.useMemo(
+    () => ({
+      title: "My Giving Portal",
+      href: `${base}/me`,
+      icon: User,
+      allowedRoles: ROUTE_PERMISSIONS["me"],
+    }),
+    [base]
+  );
+
+  const visibleSetupItems = setupItems.filter((item) => {
     if (!item.allowedRoles) return true;
     return canAccess(item.allowedRoles);
   });
+
+  const isPortalVisible = !portalItem.allowedRoles || canAccess(portalItem.allowedRoles);
 
   return (
     <aside
@@ -173,45 +259,163 @@ export function Sidebar({ className }: { className?: string }) {
     >
       {/* Brand Logo */}
       <div className="p-6 border-b border-border/50">
-        <Link href={base ? `${base}/dashboard` : "/mosques"} className="inline-block transition-transform hover:scale-[1.01]">
+        <Link href={homeHref} className="inline-block transition-transform hover:scale-[1.01]">
           <MosqueLogo size="md" />
         </Link>
       </div>
 
-      {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 scrollbar-none">
-        {visibleItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+      {/* Navigation Sections */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scrollbar-none">
+        {sections.map((section, idx) => {
+          const visibleItems = section.items.filter((item) => {
+            if (!item.allowedRoles) return true;
+            return canAccess(item.allowedRoles);
+          });
+
+          if (visibleItems.length === 0) return null;
 
           return (
-            <Link
-              key={item.title}
-              href={item.href}
-              className={cn(
-                "w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group text-left",
-                isActive
-                  ? "bg-secondary text-primary font-semibold shadow-xs"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            <div key={section.title || `sec-${idx}`} className="space-y-1">
+              {section.title && (
+                <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                  {section.title}
+                </div>
               )}
-            >
-              <Icon
-                className={cn(
-                  "w-4 h-4 transition-colors shrink-0",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground"
-                )}
-              />
-              <span className="truncate">{item.title}</span>
-            </Link>
+              {visibleItems.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+                return (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-sm font-medium transition-all group text-left",
+                      isActive
+                        ? "bg-secondary text-primary font-semibold shadow-xs"
+                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon
+                        className={cn(
+                          "w-4 h-4 transition-colors shrink-0",
+                          isActive
+                            ? "text-primary"
+                            : "text-muted-foreground group-hover:text-foreground"
+                        )}
+                      />
+                      <span className="truncate">{item.title}</span>
+                    </div>
+
+                    {Boolean(item.badge && item.badge > 0) && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs shrink-0 animate-pulse">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
+
+        {/* Collapsible SETUP Section */}
+        {visibleSetupItems.length > 0 && (
+          <div className="space-y-1 pt-1 border-t border-border/40">
+            <button
+              type="button"
+              onClick={() => setIsSetupOpen((prev) => !prev)}
+              className={cn(
+                "w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors",
+                isSetupRouteActive
+                  ? "text-primary bg-secondary/50 font-bold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" />
+                <span>Setup</span>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "w-3.5 h-3.5 transition-transform duration-200",
+                  isSetupOpen && "rotate-180"
+                )}
+              />
+            </button>
+
+            {isSetupOpen && (
+              <div className="pl-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                {visibleSetupItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive =
+                    pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+                  return (
+                    <Link
+                      key={item.title}
+                      href={item.href}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-xs font-medium transition-all group text-left",
+                        isActive
+                          ? "bg-secondary text-primary font-semibold shadow-xs"
+                          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "w-3.5 h-3.5 transition-colors shrink-0",
+                          isActive
+                            ? "text-primary"
+                            : "text-muted-foreground group-hover:text-foreground"
+                        )}
+                      />
+                      <span className="truncate">{item.title}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* My Giving Portal Item */}
+        {isPortalVisible && (
+          <div className="pt-2 border-t border-border/40">
+            {(() => {
+              const Icon = portalItem.icon;
+              const isActive =
+                pathname === portalItem.href || pathname?.startsWith(`${portalItem.href}/`);
+              return (
+                <Link
+                  href={portalItem.href}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-sm font-medium transition-all group text-left",
+                    isActive
+                      ? "bg-secondary text-primary font-semibold shadow-xs"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "w-4 h-4 transition-colors shrink-0",
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground"
+                    )}
+                  />
+                  <span className="truncate">{portalItem.title}</span>
+                </Link>
+              );
+            })()}
+          </div>
+        )}
       </div>
 
-      {/* Bottom Area: Mosque Art & Location Card */}
-      <div className="p-4 relative">
-        {/* Subtle decorative minaret silhouette background */}
+      {/* Bottom Area: Minaret Art & Location Card */}
+      <div className="p-4 relative border-t border-border/40">
         <div
           className="absolute -bottom-2 -left-2 w-32 h-44 opacity-8 dark:opacity-4 pointer-events-none text-primary"
           aria-hidden="true"

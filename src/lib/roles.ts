@@ -1,10 +1,10 @@
 // ---------------------------------------------------------------------------
 // roles.ts — Centralized Mosque Tenancy & Authorization Role Groups
 //
-// Source of truth: backend mosque.middleware.ts
+// Source of truth: backend mosque.middleware.ts & docs/SIMPLIFY.md
 // ---------------------------------------------------------------------------
 
-import { Role } from "@/types/api";
+import type { Role } from "@/types/api";
 
 /**
  * Roles permitted to view chart of accounts, funds, bank account numbers, etc.
@@ -65,3 +65,79 @@ export const EXPENSE_OPERATOR_ROLES: readonly Role[] = [
   "STAFF",
 ] as const;
 
+/**
+ * All active membership roles.
+ */
+export const ALL_ROLES: readonly Role[] = [
+  "MOSQUE_ADMIN",
+  "TREASURER",
+  "COMMITTEE_MEMBER",
+  "STAFF",
+  "MEMBER",
+] as const;
+
+/**
+ * Returns the designated default home URL for a given role within a mosque.
+ * MEMBER -> /mosques/${mosqueId}/me (My Giving)
+ * All other roles -> /mosques/${mosqueId}/dashboard
+ */
+export function getRoleHome(mosqueId: string, role: Role | null): string {
+  if (role === "MEMBER") {
+    return `/mosques/${mosqueId}/me`;
+  }
+  return `/mosques/${mosqueId}/dashboard`;
+}
+
+/**
+ * Route permissions map mapping route segment names (under /mosques/:mosqueId/)
+ * to the allowed roles according to docs/SIMPLIFY.md.
+ */
+export const ROUTE_PERMISSIONS: Record<string, readonly Role[]> = {
+  // Home dashboards & Queues
+  dashboard: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER", "STAFF"],
+  approvals: FINANCIAL_OPERATOR_ROLES, // ADMIN, TREASURER
+  me: ALL_ROLES,
+
+  // Daily operations
+  donations: COLLECTION_OPERATOR_ROLES, // ADMIN, TREASURER, STAFF
+  expenses: EXPENSE_OPERATOR_ROLES,     // ADMIN, TREASURER, STAFF
+  transfers: FINANCIAL_OPERATOR_ROLES,  // ADMIN, TREASURER
+  collections: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER", "STAFF"],
+
+  // People & Giving
+  members: OVERSIGHT_ROLES,             // ADMIN, TREASURER, COMMITTEE_MEMBER
+  families: OVERSIGHT_ROLES,            // ADMIN, TREASURER, COMMITTEE_MEMBER
+  chanda: FINANCIAL_OPERATOR_ROLES,     // ADMIN, TREASURER
+  pledges: ["MOSQUE_ADMIN", "TREASURER", "MEMBER"],
+  campaigns: ["MOSQUE_ADMIN", "TREASURER", "COMMITTEE_MEMBER", "MEMBER"],
+
+  // Records
+  transactions: OVERSIGHT_ROLES,        // ADMIN, TREASURER, COMMITTEE_MEMBER
+  reports: OVERSIGHT_ROLES,             // ADMIN, TREASURER, COMMITTEE_MEMBER
+
+  // Setup & Governance
+  accounts: FINANCIAL_OPERATOR_ROLES,   // ADMIN, TREASURER
+  funds: FINANCIAL_OPERATOR_ROLES,      // ADMIN, TREASURER
+  categories: FINANCIAL_OPERATOR_ROLES, // ADMIN, TREASURER
+  "audit-logs": ADMIN_ONLY_ROLES,       // ADMIN
+  settings: ADMIN_ONLY_ROLES,           // ADMIN
+};
+
+/**
+ * Determines whether a given role is allowed to access a route segment.
+ */
+export function isRouteAllowed(
+  segment: string,
+  role: Role | null,
+  isSuperAdmin: boolean = false
+): boolean {
+  if (isSuperAdmin) return true;
+  if (!role) return false;
+
+  const allowedRoles = ROUTE_PERMISSIONS[segment];
+  if (!allowedRoles) {
+    return false;
+  }
+
+  return allowedRoles.includes(role);
+}

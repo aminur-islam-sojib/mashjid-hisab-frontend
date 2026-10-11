@@ -5,6 +5,8 @@ import { MosqueProvider } from "@/providers/mosque-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { MosqueRouteGuard } from "@/components/auth/mosque-route-guard";
+import { MobileBottomBar } from "@/components/layout/mobile-bottom-bar";
 
 function TenantShell({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
@@ -21,14 +23,17 @@ function TenantShell({ children }: { children: React.ReactNode }) {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <Header onToggleMobileMenu={() => setIsMobileNavOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
           <div className="mx-auto space-y-6">
-            {children}
+            <MosqueRouteGuard>{children}</MosqueRouteGuard>
           </div>
         </main>
+
+        {/* Mobile Thumb Bottom Navigation Bar */}
+        <MobileBottomBar onOpenMore={() => setIsMobileNavOpen(true)} />
       </div>
     </div>
   );
