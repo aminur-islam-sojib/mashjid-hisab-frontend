@@ -107,6 +107,8 @@ export interface BalancesReport {
   formattedTotalFundsBalance?: string;
   formattedTotalFundBalance?: string;
   funds?: FundBalance[];
+  unallocated?: string;
+  formattedUnallocated?: string;
 }
 
 export interface DonorRankingItem {

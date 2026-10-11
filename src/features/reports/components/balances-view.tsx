@@ -115,6 +115,23 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
                     </div>
                   ))
                 )}
+
+                {/* Unallocated Row - displayed only when non-zero */}
+                {data.unallocated && data.unallocated !== "0" && (
+                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg text-sm border border-red-200">
+                    <div>
+                      <span className="font-semibold text-red-700 block">
+                        Unallocated Balance
+                      </span>
+                      <span className="text-xs text-red-500">
+                        Physical balances exceeding assigned funds
+                      </span>
+                    </div>
+                    <span className="font-bold text-red-700">
+                      {formatCurrency(data.unallocated)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

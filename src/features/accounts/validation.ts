@@ -5,6 +5,7 @@ export const accountSchema = z.object({
   type: z.enum(["CASH", "BANK", "MOBILE_WALLET", "CARD", "OTHER"]),
   accountNumber: z.string().max(50).optional().or(z.literal("")),
   openingBalanceMajor: z.string().default("0"),
+  openingFundId: z.string().optional().or(z.literal("")),
 });
 
 export type AccountFormData = z.infer<typeof accountSchema>;

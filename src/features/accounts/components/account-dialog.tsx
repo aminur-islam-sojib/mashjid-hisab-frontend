@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Modal } from "@/components/ui/modal";
@@ -31,11 +32,18 @@ export function AccountDialog({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const isEditing = !!initialData;
 
+  const { data: funds = [] } = useQuery({
+    queryKey: ["funds", mosqueId],
+    queryFn: () => apiClient.get<any[]>(`/mosques/${mosqueId}/funds`),
+    enabled: isOpen && !isEditing,
+  });
+
   const {
     register,
     handleSubmit,
     reset,
     setError,
+    watch,
     formState: { errors },
   } = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema) as any,
@@ -44,6 +52,7 @@ export function AccountDialog({
       type: "BANK",
       accountNumber: "",
       openingBalanceMajor: "0",
+      openingFundId: "",
     },
   });
 
@@ -54,16 +63,19 @@ export function AccountDialog({
         type: initialData.type,
         accountNumber: initialData.accountNumber || "",
         openingBalanceMajor: poishaToMajor(initialData.openingBalance || "0"),
+        openingFundId: "",
       });
     } else {
+      const defaultFund = funds.find((f: any) => f.type === "GENERAL") || funds[0];
       reset({
         name: "",
         type: "BANK",
         accountNumber: "",
         openingBalanceMajor: "0",
+        openingFundId: defaultFund?.id || "",
       });
     }
-  }, [initialData, reset, isOpen]);
+  }, [initialData, reset, isOpen, funds]);
 
   const onSubmit = async (data: AccountFormData) => {
     setIsSubmitting(true);
@@ -83,6 +95,10 @@ export function AccountDialog({
           type: data.type,
           accountNumber: data.accountNumber ? data.accountNumber : undefined,
           openingBalance: openingBalancePoisha,
+          openingFundId:
+            BigInt(openingBalancePoisha) > 0n && data.openingFundId
+              ? data.openingFundId
+              : undefined,
         });
         toast.success("Account created successfully");
       }
@@ -166,21 +182,47 @@ export function AccountDialog({
         </div>
 
         {!isEditing && (
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">
-              Opening Balance (৳ BDT)
-            </label>
-            <Input
-              {...register("openingBalanceMajor")}
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              disabled={isSubmitting}
-            />
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Initial balance on system onboarding. Locked once transactions are recorded.
-            </p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                Opening Balance (৳ BDT)
+              </label>
+              <Input
+                {...register("openingBalanceMajor")}
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                disabled={isSubmitting}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Initial balance on system onboarding. Locked once transactions are recorded.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
+                Fund Allocation
+              </label>
+              <select
+                {...register("openingFundId")}
+                disabled={isSubmitting || funds.length === 0}
+                className="w-full text-xs h-9 rounded-md border border-input bg-background px-3 py-1 shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                {funds.length === 0 ? (
+                  <option value="">No active funds available</option>
+                ) : (
+                  funds.map((fund: any) => (
+                    <option key={fund.id} value={fund.id}>
+                      {fund.name} ({fund.type})
+                    </option>
+                  ))
+                )}
+              </select>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Select which fund this opening balance belongs to (defaults to General fund).
+              </p>
+            </div>
           </div>
         )}
 

@@ -25,6 +25,7 @@ import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AllocateDialog } from "@/features/funds/components/allocate-dialog";
 
 interface DashboardAccountItem {
   id: string;
@@ -51,6 +52,8 @@ interface DashboardReportData {
     formattedTotalAccounts?: string;
     totalFunds: string;
     formattedTotalFunds?: string;
+    unallocated?: string;
+    formattedUnallocated?: string;
     accounts: DashboardAccountItem[];
     funds: DashboardFundItem[];
   };
@@ -97,6 +100,7 @@ export default function MosqueDashboardPage() {
   const { activeMosque, canAccess } = useMosque();
 
   const isOversight = canAccess(OVERSIGHT_ROLES);
+  const [isAllocateOpen, setIsAllocateOpen] = React.useState(false);
 
   const {
     data: dashboardData,
@@ -365,9 +369,47 @@ export default function MosqueDashboardPage() {
                 ) : (
                   <p className="text-xs text-muted-foreground py-6 text-center">No funds created yet.</p>
                 )}
+
+                {/* Unallocated Money Row (Visible only when non-zero) */}
+                {dashboardData?.balances?.unallocated &&
+                  dashboardData.balances.unallocated !== "0" && (
+                    <div className="py-3 px-3 -mx-3 mt-2 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-amber-900 dark:text-amber-200">Unallocated Balance</p>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 font-medium">
+                            Action Required
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Account balances exceed assigned funds by this amount.
+                        </p>
+                      </div>
+                      <div className="text-right flex items-center gap-2">
+                        <p className="font-bold font-heading text-amber-900 dark:text-amber-200">
+                          {formatCurrency(dashboardData.balances.unallocated)}
+                        </p>
+                        <Button
+                          size="sm"
+                          className="h-7 text-[11px] px-2.5 bg-amber-600 hover:bg-amber-700 text-white"
+                          onClick={() => setIsAllocateOpen(true)}
+                        >
+                          Allocate
+                        </Button>
+                      </div>
+                    </div>
+                  )}
               </div>
             </Card>
           </div>
+
+          <AllocateDialog
+            isOpen={isAllocateOpen}
+            onClose={() => setIsAllocateOpen(false)}
+            mosqueId={mosqueId}
+            unallocatedPoisha={dashboardData?.balances?.unallocated || "0"}
+            onSuccess={() => refetch()}
+          />
         </>
       )}
     </div>
