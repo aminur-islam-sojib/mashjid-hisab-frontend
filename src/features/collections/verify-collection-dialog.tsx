@@ -9,6 +9,7 @@ import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatCurrency } from "@/lib/money";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -32,6 +33,7 @@ export function VerifyCollectionDialog({
 }: VerifyCollectionDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const isSelfCounted = Boolean(
     user?.id && session?.createdBy?.id && user.id === session.createdBy.id
@@ -93,7 +95,8 @@ export function VerifyCollectionDialog({
           accountId: values.accountId,
           categoryId: values.categoryId || undefined,
           notes: values.notes || undefined,
-        }
+        },
+        { idempotencyKey },
       );
     },
     onSuccess: () => {

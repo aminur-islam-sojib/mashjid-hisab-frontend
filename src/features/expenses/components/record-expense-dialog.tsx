@@ -12,6 +12,7 @@ import { FundItem } from "@/features/funds/types";
 import { AccountItem } from "@/features/accounts/types";
 import { CategoryItem } from "@/features/categories/types";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha } from "@/lib/money";
 import { Loader2, UploadCloud, FileCheck, X } from "lucide-react";
 
@@ -35,6 +36,7 @@ export function RecordExpenseDialog({
   onSuccess,
 }: RecordExpenseDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isUploadingFile, setIsUploadingFile] = React.useState(false);
 
@@ -111,17 +113,21 @@ export function RecordExpenseDialog({
       const amountPoisha = majorToPoisha(data.amountMajor);
 
       // 2. Post expense record
-      await apiClient.post(`/mosques/${mosqueId}/expenses`, {
-        amount: amountPoisha,
-        accountId: data.accountId,
-        fundId: data.fundId,
-        categoryId: data.categoryId,
-        date: new Date(data.date).toISOString(),
-        payee: data.payee,
-        attachments: [uploadResult.id],
-        voucherNo: data.voucherNo ? data.voucherNo : undefined,
-        notes: data.notes ? data.notes : undefined,
-      });
+      await apiClient.post(
+        `/mosques/${mosqueId}/expenses`,
+        {
+          amount: amountPoisha,
+          accountId: data.accountId,
+          fundId: data.fundId,
+          categoryId: data.categoryId,
+          date: new Date(data.date).toISOString(),
+          payee: data.payee,
+          attachments: [uploadResult.id],
+          voucherNo: data.voucherNo ? data.voucherNo : undefined,
+          notes: data.notes ? data.notes : undefined,
+        },
+        { idempotencyKey },
+      );
 
       toast.success("Expense recorded successfully!", {
         description: `Disbursement of ৳${data.amountMajor} submitted.`,

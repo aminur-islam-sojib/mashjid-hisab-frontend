@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { voidDonationSchema, VoidDonationFormData } from "../validation";
 import { DonationItem } from "../types";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatCurrency } from "@/lib/money";
 import { Loader2, AlertTriangle } from "lucide-react";
 
@@ -29,6 +30,7 @@ export function VoidDonationDialog({
   onSuccess,
 }: VoidDonationDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const {
     register,
@@ -49,9 +51,13 @@ export function VoidDonationDialog({
   const onSubmit = async (data: VoidDonationFormData) => {
     setIsSubmitting(true);
     try {
-      await apiClient.post(`/mosques/${mosqueId}/donations/${donation.id}/void`, {
-        reason: data.reason,
-      });
+      await apiClient.post(
+        `/mosques/${mosqueId}/donations/${donation.id}/void`,
+        {
+          reason: data.reason,
+        },
+        { idempotencyKey },
+      );
 
       toast.success("Donation voided successfully", {
         description: "Reversal entry was recorded in the master ledger.",

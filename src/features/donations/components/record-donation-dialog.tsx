@@ -12,6 +12,7 @@ import { FundItem } from "@/features/funds/types";
 import { AccountItem } from "@/features/accounts/types";
 import { CategoryItem } from "@/features/categories/types";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha } from "@/lib/money";
 import { Loader2 } from "lucide-react";
 
@@ -122,24 +123,30 @@ export function RecordDonationDialog({
     }
   }, [filteredCategories, currentCategoryId, setValue, isOpen]);
 
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
+
   const onSubmit = async (data: CreateDonationFormData) => {
     setIsSubmitting(true);
     try {
       const amountPoisha = majorToPoisha(data.amountMajor);
 
-      await apiClient.post(`/mosques/${mosqueId}/donations`, {
-        amount: amountPoisha,
-        accountId: data.accountId,
-        fundId: data.fundId,
-        categoryId: data.categoryId,
-        date: new Date(data.date).toISOString(),
-        donorName: data.donorName ? data.donorName : undefined,
-        donorPhone: data.donorPhone ? data.donorPhone : undefined,
-        donorEmail: data.donorEmail ? data.donorEmail : undefined,
-        source: data.source,
-        isAnonymousPublic: data.isAnonymousPublic,
-        notes: data.notes ? data.notes : undefined,
-      });
+      await apiClient.post(
+        `/mosques/${mosqueId}/donations`,
+        {
+          amount: amountPoisha,
+          accountId: data.accountId,
+          fundId: data.fundId,
+          categoryId: data.categoryId,
+          date: new Date(data.date).toISOString(),
+          donorName: data.donorName ? data.donorName : undefined,
+          donorPhone: data.donorPhone ? data.donorPhone : undefined,
+          donorEmail: data.donorEmail ? data.donorEmail : undefined,
+          source: data.source,
+          isAnonymousPublic: data.isAnonymousPublic,
+          notes: data.notes ? data.notes : undefined,
+        },
+        { idempotencyKey },
+      );
 
       toast.success("Donation recorded successfully!", {
         description: `৳${data.amountMajor} received and posted to ledger.`,

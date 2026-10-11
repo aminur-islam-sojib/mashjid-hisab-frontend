@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha } from "@/lib/money";
 import {
   createCollectionSchema,
@@ -28,6 +29,7 @@ export function StartCollectionDialog({
   mosqueId,
 }: StartCollectionDialogProps) {
   const queryClient = useQueryClient();
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const {
     register,
@@ -93,7 +95,11 @@ export function StartCollectionDialog({
         categoryId: values.categoryId || undefined,
       };
 
-      return apiClient.post(`/mosques/${mosqueId}/collections`, payload);
+      return apiClient.post(
+        `/mosques/${mosqueId}/collections`,
+        payload,
+        { idempotencyKey },
+      );
     },
     onSuccess: () => {
       toast.success("Counting session created successfully.");

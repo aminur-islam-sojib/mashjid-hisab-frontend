@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeftRight, Plus, Ban, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { generateIdempotencyKey } from "@/lib/idempotency";
 import { formatCurrency } from "@/lib/money";
 import { TransferItem } from "@/features/transfers/types";
 import { TransferDialog } from "@/features/transfers/components/transfer-dialog";
@@ -52,7 +53,11 @@ export default function TransfersPage() {
       if (!reason || reason.trim().length < 3) {
         throw new Error("A void reason with at least 3 characters is required.");
       }
-      return apiClient.post(`/mosques/${mosqueId}/transfers/${transferId}/void`, { reason });
+      return apiClient.post(
+        `/mosques/${mosqueId}/transfers/${transferId}/void`,
+        { reason },
+        { idempotencyKey: generateIdempotencyKey() },
+      );
     },
     onSuccess: () => {
       toast.success("Transfer voided successfully");

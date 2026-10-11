@@ -8,6 +8,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatCurrency, majorToPoisha, poishaToMajor } from "@/lib/money";
 import { Loader2 } from "lucide-react";
 
@@ -32,6 +33,7 @@ export function AllocateDialog({
   onSuccess,
 }: AllocateDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const { data: funds = [] } = useQuery({
     queryKey: ["funds", mosqueId],
@@ -81,10 +83,14 @@ export function AllocateDialog({
 
     setIsSubmitting(true);
     try {
-      await apiClient.post(`/mosques/${mosqueId}/funds/allocate-unallocated`, {
-        fundId: data.fundId,
-        amount: amountPoisha,
-      });
+      await apiClient.post(
+        `/mosques/${mosqueId}/funds/allocate-unallocated`,
+        {
+          fundId: data.fundId,
+          amount: amountPoisha,
+        },
+        { idempotencyKey },
+      );
       toast.success("Balance allocated successfully.");
       onSuccess();
       onClose();

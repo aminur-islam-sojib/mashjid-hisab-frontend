@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha, poishaToMajor, formatCurrency } from "@/lib/money";
 import {
   recordDuePaymentSchema,
@@ -31,6 +32,7 @@ export function RecordDuePaymentDialog({
   due,
 }: RecordDuePaymentDialogProps) {
   const queryClient = useQueryClient();
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const remainingPoisha = React.useMemo(() => {
     if (!due) return BigInt(0);
@@ -104,14 +106,18 @@ export function RecordDuePaymentDialog({
         );
       }
 
-      return apiClient.post(`/mosques/${mosqueId}/dues/${due.id}/payments`, {
-        amount: paymentPoishaStr,
-        accountId: values.accountId,
-        categoryId: values.categoryId,
-        date: new Date(values.date).toISOString(),
-        source: values.source,
-        notes: values.notes || undefined,
-      });
+      return apiClient.post(
+        `/mosques/${mosqueId}/dues/${due.id}/payments`,
+        {
+          amount: paymentPoishaStr,
+          accountId: values.accountId,
+          categoryId: values.categoryId,
+          date: new Date(values.date).toISOString(),
+          source: values.source,
+          notes: values.notes || undefined,
+        },
+        { idempotencyKey },
+      );
     },
     onSuccess: () => {
       toast.success("Due payment recorded and linked donation created.");

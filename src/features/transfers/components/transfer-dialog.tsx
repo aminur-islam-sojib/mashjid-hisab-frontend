@@ -11,6 +11,7 @@ import { createTransferSchema, CreateTransferFormData } from "../validation";
 import { FundItem } from "@/features/funds/types";
 import { AccountItem } from "@/features/accounts/types";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha } from "@/lib/money";
 import { Loader2, ArrowLeftRight } from "lucide-react";
 import { useMosque } from "@/providers/mosque-provider";
@@ -36,6 +37,7 @@ export function TransferDialog({
   const { canAccess } = useMosque();
   const isAdmin = canAccess(ADMIN_ONLY_ROLES);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const todayStr = new Date().toISOString().split("T")[0]!;
 
@@ -84,16 +86,20 @@ export function TransferDialog({
     try {
       const amountPoisha = majorToPoisha(data.amountMajor);
 
-      await apiClient.post(`/mosques/${mosqueId}/transfers`, {
-        amount: amountPoisha,
-        fromAccountId: data.fromAccountId,
-        toAccountId: data.toAccountId,
-        fromFundId: data.fromFundId,
-        toFundId: data.isFundTransfer ? data.toFundId : undefined,
-        date: new Date(data.date).toISOString(),
-        reason: data.isFundTransfer ? data.reason : undefined,
-        notes: data.notes ? data.notes : undefined,
-      });
+      await apiClient.post(
+        `/mosques/${mosqueId}/transfers`,
+        {
+          amount: amountPoisha,
+          fromAccountId: data.fromAccountId,
+          toAccountId: data.toAccountId,
+          fromFundId: data.fromFundId,
+          toFundId: data.isFundTransfer ? data.toFundId : undefined,
+          date: new Date(data.date).toISOString(),
+          reason: data.isFundTransfer ? data.reason : undefined,
+          notes: data.notes ? data.notes : undefined,
+        },
+        { idempotencyKey },
+      );
 
       toast.success("Transfer completed successfully", {
         description: `৳${data.amountMajor} transferred between accounts.`,

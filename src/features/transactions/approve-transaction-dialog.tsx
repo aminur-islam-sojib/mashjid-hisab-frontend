@@ -7,6 +7,7 @@ import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatCurrency } from "@/lib/money";
 import { useAuth } from "@/providers/auth-provider";
 import { UnifiedTransactionItem } from "./types";
@@ -26,6 +27,7 @@ export function ApproveTransactionDialog({
 }: ApproveTransactionDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const isSelfCreated =
     Boolean(user?.id && transaction?.createdById && user.id === transaction.createdById);
@@ -34,7 +36,9 @@ export function ApproveTransactionDialog({
     mutationFn: async () => {
       if (!transaction) return;
       return apiClient.post(
-        `/mosques/${mosqueId}/transactions/${transaction.id}/approve`
+        `/mosques/${mosqueId}/transactions/${transaction.id}/approve`,
+        undefined,
+        { idempotencyKey },
       );
     },
     onSuccess: () => {

@@ -51,6 +51,7 @@ function addRefreshSubscriber(callback: (token: string | null) => void) {
 interface RequestOptions extends RequestInit {
   mosqueId?: string | null;
   skipAuthRefresh?: boolean;
+  idempotencyKey?: string | null;
 }
 
 async function request<T>(
@@ -76,6 +77,11 @@ async function request<T>(
   const tenantId = options.mosqueId ?? activeMosqueId;
   if (tenantId && !headers.has("x-mosque-id")) {
     headers.set("x-mosque-id", tenantId);
+  }
+
+  // Idempotency: attach Idempotency-Key header if provided
+  if (options.idempotencyKey && !headers.has("Idempotency-Key")) {
+    headers.set("Idempotency-Key", options.idempotencyKey);
   }
 
   const fetchConfig: RequestInit = {

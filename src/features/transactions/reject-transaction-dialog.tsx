@@ -9,6 +9,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatCurrency } from "@/lib/money";
 import {
   rejectTransactionSchema,
@@ -30,6 +31,7 @@ export function RejectTransactionDialog({
   transaction,
 }: RejectTransactionDialogProps) {
   const queryClient = useQueryClient();
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const {
     register,
@@ -54,7 +56,8 @@ export function RejectTransactionDialog({
       if (!transaction) return;
       return apiClient.post(
         `/mosques/${mosqueId}/transactions/${transaction.id}/reject`,
-        values
+        values,
+        { idempotencyKey },
       );
     },
     onSuccess: () => {

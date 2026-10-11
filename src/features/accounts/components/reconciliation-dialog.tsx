@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { reconciliationSchema, ReconciliationFormData } from "../validation";
 import { AccountItem } from "../types";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha, formatCurrency } from "@/lib/money";
 import { Loader2, Scale } from "lucide-react";
 
@@ -29,6 +30,7 @@ export function ReconciliationDialog({
   onSuccess,
 }: ReconciliationDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { key: idempotencyKey } = useIdempotencyKey(isOpen);
 
   const {
     register,
@@ -59,11 +61,15 @@ export function ReconciliationDialog({
     try {
       const realBalancePoisha = majorToPoisha(data.realBalanceMajor);
 
-      await apiClient.post(`/mosques/${mosqueId}/accounts/${account.id}/reconciliations`, {
-        realBalance: realBalancePoisha,
-        notes: data.notes ? data.notes : undefined,
-        fundId: data.fundId ? data.fundId : undefined,
-      });
+      await apiClient.post(
+        `/mosques/${mosqueId}/accounts/${account.id}/reconciliations`,
+        {
+          realBalance: realBalancePoisha,
+          notes: data.notes ? data.notes : undefined,
+          fundId: data.fundId ? data.fundId : undefined,
+        },
+        { idempotencyKey },
+      );
 
       toast.success("Account reconciliation completed!", {
         description: "Adjustment entry was recorded for any balance variance.",
