@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMosque } from "@/providers/mosque-provider";
 import { useAuth } from "@/providers/auth-provider";
 import { isRouteAllowed, getRoleHome } from "@/lib/roles";
 
 interface MosqueRouteGuardProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 function RouteGuardFallback() {
@@ -26,6 +26,7 @@ function RouteGuardFallback() {
 
 export function MosqueRouteGuard() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { activeRole, activeMosque } = useMosque();
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -39,6 +40,7 @@ export function MosqueRouteGuard() {
 
   const mosqueId = segments[1] || activeMosque?.id || "";
   const currentSegment = segments[2] || "";
+  const tab = searchParams?.get("tab");
 
   const isAllowed = React.useMemo(() => {
     if (isAuthLoading) return null; // Pending
@@ -48,8 +50,13 @@ export function MosqueRouteGuard() {
     // Direct visit to /mosques/:mosqueId with no sub-path is not a page; must redirect to home
     if (!currentSegment) return false;
 
+    // If congregant member is visiting pledges under people
+    if (currentSegment === "people" && (tab === "pledges" || activeRole === "MEMBER")) {
+      return isRouteAllowed("pledges", activeRole, false);
+    }
+
     return isRouteAllowed(currentSegment, activeRole, false);
-  }, [isAuthLoading, isSuperAdmin, activeRole, currentSegment]);
+  }, [isAuthLoading, isSuperAdmin, activeRole, currentSegment, tab, activeRole]);
 
   // Handle redirect before render when forbidden or visiting bare mosque root
   React.useEffect(() => {

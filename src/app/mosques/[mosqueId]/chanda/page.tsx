@@ -1,11 +1,22 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { ChandaPage } from "@/features/chanda/chanda-page";
+import * as React from "react";
+import { useParams, useRouter } from "next/navigation";
 
-export default function Page() {
+export default function ChandaRedirect() {
   const params = useParams();
-  const mosqueId = params["mosqueId"] as string;
+  const router = useRouter();
+  const mosqueId = params?.["mosqueId"] as string;
 
-  return <ChandaPage mosqueId={mosqueId} />;
+  React.useEffect(() => {
+    if (mosqueId) {
+      router.replace(`/mosques/${mosqueId}/people?tab=chanda`);
+    }
+  }, [mosqueId, router]);
+
+  return (
+    <div className="py-16 text-center text-xs text-muted-foreground">
+      Redirecting to Chanda & Dues...
+    </div>
+  );
 }

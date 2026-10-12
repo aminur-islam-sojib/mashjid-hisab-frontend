@@ -177,4 +177,26 @@ describe("T04: Role-Aware Navigation & Route Guards Invariant Suite", () => {
     assert.equal(getVisibleCount("STAFF"), 5, "Staff sees 5 items");
     assert.equal(getVisibleCount("MEMBER"), 3, "Member sees 3 items");
   });
+
+  it("9. Consolidated routes (people, money) resolve permissions correctly for authorized roles", () => {
+    // MOSQUE_ADMIN can access people and money
+    assert.equal(isRouteAllowed("people", "MOSQUE_ADMIN"), true);
+    assert.equal(isRouteAllowed("money", "MOSQUE_ADMIN"), true);
+
+    // TREASURER can access people and money
+    assert.equal(isRouteAllowed("people", "TREASURER"), true);
+    assert.equal(isRouteAllowed("money", "TREASURER"), true);
+
+    // COMMITTEE_MEMBER can access people and money
+    assert.equal(isRouteAllowed("people", "COMMITTEE_MEMBER"), true);
+    assert.equal(isRouteAllowed("money", "COMMITTEE_MEMBER"), true);
+
+    // STAFF cannot access people or money
+    assert.equal(isRouteAllowed("people", "STAFF"), false);
+    assert.equal(isRouteAllowed("money", "STAFF"), false);
+
+    // MEMBER cannot access people or money directly
+    assert.equal(isRouteAllowed("people", "MEMBER"), false);
+    assert.equal(isRouteAllowed("money", "MEMBER"), false);
+  });
 });

@@ -124,6 +124,15 @@ export const ROUTE_PERMISSIONS: Record<string, readonly Role[]> = {
 };
 
 /**
+ * Route aliases mapping consolidated route segments (e.g. /people, /money)
+ * to their canonical permission keys in ROUTE_PERMISSIONS.
+ */
+export const ROUTE_ALIASES: Record<string, string> = {
+  people: "members",
+  money: "transactions",
+};
+
+/**
  * Determines whether a given role is allowed to access a route segment.
  */
 export function isRouteAllowed(
@@ -134,10 +143,12 @@ export function isRouteAllowed(
   if (isSuperAdmin) return true;
   if (!role) return false;
 
-  const allowedRoles = ROUTE_PERMISSIONS[segment];
+  const targetSegment = ROUTE_ALIASES[segment] || segment;
+  const allowedRoles = ROUTE_PERMISSIONS[targetSegment];
   if (!allowedRoles) {
     return false;
   }
 
   return allowedRoles.includes(role);
 }
+

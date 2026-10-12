@@ -1,4 +1,4 @@
-export type ReportTab = "income-expense" | "balances" | "donors" | "periods";
+export type ReportTab = "summary" | "income-expense" | "balances" | "donors" | "periods";
 export type IncomeExpenseGroupBy = "month" | "fund" | "category";
 export type DonorGroupBy = "member" | "family";
 export type DonorStatus = "top" | "all";
