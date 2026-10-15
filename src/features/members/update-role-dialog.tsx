@@ -61,12 +61,12 @@ export function UpdateRoleDialog({
       );
     },
     onSuccess: () => {
-      toast.success("Member role updated.");
+      toast.success("Member updated.");
       queryClient.invalidateQueries({ queryKey: ["members", mosqueId] });
       onClose();
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to update member role");
+      toast.error(err.message || "Failed to update member");
     },
   });
 
@@ -80,7 +80,7 @@ export function UpdateRoleDialog({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Edit Role: ${member.user.name}`}
+      title={`Edit Member: ${member.user.name}`}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1">
@@ -111,7 +111,9 @@ export function UpdateRoleDialog({
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006B5B]"
           >
             <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive / Suspended</option>
+            <option value="SUSPENDED">Suspended (Deactivated)</option>
+            <option value="PENDING">Pending Approval</option>
+            <option value="REJECTED">Rejected</option>
           </select>
         </div>
 

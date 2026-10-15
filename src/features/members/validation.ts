@@ -68,7 +68,7 @@ export const updateRoleSchema = z.object({
     "STAFF",
     "MEMBER",
   ]),
-  status: z.enum(["ACTIVE", "INACTIVE"]),
+  status: z.enum(["ACTIVE", "SUSPENDED", "PENDING", "REJECTED"]),
 });
 
 export type UpdateRoleValues = z.infer<typeof updateRoleSchema>;

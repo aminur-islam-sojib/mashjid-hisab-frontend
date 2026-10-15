@@ -225,7 +225,9 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
               >
                 <option value="">All Statuses</option>
                 <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
+                <option value="SUSPENDED">Suspended</option>
+                <option value="PENDING">Pending</option>
+                <option value="REJECTED">Rejected</option>
               </select>
             </div>
           </div>
@@ -273,8 +275,12 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
                       <Td>
                         {member.status === "ACTIVE" ? (
                           <Badge variant="success" className="text-[10px]">Active</Badge>
+                        ) : member.status === "SUSPENDED" ? (
+                          <Badge variant="danger" className="text-[10px]">Suspended</Badge>
+                        ) : member.status === "PENDING" ? (
+                          <Badge variant="warning" className="text-[10px]">Pending</Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-[10px]">Inactive</Badge>
+                          <Badge variant="secondary" className="text-[10px]">{member.status}</Badge>
                         )}
                       </Td>
                       <Td className="text-xs text-muted-foreground whitespace-nowrap">
@@ -288,7 +294,7 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
                               size="xs"
                               onClick={() => setMemberToEdit(member)}
                             >
-                              Edit Role
+                              Edit
                             </Button>
                             <Button
                               variant="ghost"
