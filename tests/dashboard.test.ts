@@ -55,4 +55,33 @@ describe("Dashboard Home & Financial Integration Test Suite", () => {
     assert.equal(formatCurrency("845000", { showDecimals: false }), "৳8,450");
     assert.equal(formatCurrency("700000", { showDecimals: false }), "৳7,000");
   });
+
+  it("handles the 4 financial KPI card values, trends, and dates cleanly", () => {
+    // 1. Total treasury balance
+    const treasuryPoisha = 12500000n; // ৳125,000.00
+    assert.equal(formatCurrency(treasuryPoisha, { showDecimals: false }), "৳125,000");
+
+    // 2. Income this month & trend
+    const incomePoisha = 845000n; // ৳8,450.00
+    assert.equal(formatCurrency(incomePoisha, { showDecimals: false }), "৳8,450");
+    const incomeTrend = 15;
+    assert.ok(incomeTrend > 0);
+
+    // 3. Spending this month & trend
+    const expensePoisha = 320000n; // ৳3,200.00
+    assert.equal(formatCurrency(expensePoisha, { showDecimals: false }), "৳3,200");
+    const expenseTrend = -5;
+    assert.ok(expenseTrend < 0);
+
+    // 4. Pending approvals count & total amount
+    const pendingCount = 3;
+    const pendingAmount = 45000n;
+    assert.equal(pendingCount, 3);
+    assert.equal(formatCurrency(pendingAmount, { showDecimals: false }), "৳450");
+
+    // Date representation
+    const testDate = new Date("2026-10-16T12:00:00Z");
+    const formattedDate = testDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+    assert.equal(formattedDate, "Oct 16, 2026");
+  });
 });

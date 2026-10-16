@@ -121,7 +121,7 @@ export function QuickActionsCard({
   ];
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl shadow-[0_2px_10px_rgba(16,60,48,0.05)] overflow-hidden">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-[14px] shadow-[0_2px_10px_rgba(16,60,48,0.05)] overflow-hidden">
       {/* Dark Teal Gradient Header with Islamic Arch Watermark */}
       <div className="relative overflow-hidden bg-linear-to-r from-[#0A5C47] to-[#0E7A5C] text-white p-[22px_20px_24px] flex items-center gap-3.5">
         {/* Arch Watermark */}

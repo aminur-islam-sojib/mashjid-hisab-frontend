@@ -34,7 +34,7 @@ export function RecentMembersCard({
   const displayList = members.slice(0, 4);
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-4 sm:p-4.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-[14px] p-4 sm:p-4.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between pb-1">
         <h2 className="text-[13px] font-bold text-foreground tracking-tight m-0">
@@ -103,8 +103,8 @@ export function RecentMembersCard({
                   {/* Status Badge */}
                   <span
                     className={`rounded-[6px] px-2.5 py-0.5 text-[10px] font-semibold justify-self-start ${isActive
-                        ? "bg-[#DDF1E9] dark:bg-emerald-950/70 text-[#0B8A63] dark:text-emerald-400"
-                        : "bg-muted text-muted-foreground"
+                      ? "bg-[#DDF1E9] dark:bg-emerald-950/70 text-[#0B8A63] dark:text-emerald-400"
+                      : "bg-muted text-muted-foreground"
                       }`}
                   >
                     {m.status || "Active"}

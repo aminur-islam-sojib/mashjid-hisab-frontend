@@ -45,7 +45,7 @@ export function QuickStatsCard({ stats }: QuickStatsCardProps) {
   ];
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-4 sm:p-4.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col ">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-[14px] p-4 sm:p-4.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col ">
       {/* Header */}
       <h2 className="text-[13px] font-bold text-foreground tracking-tight m-0 pb-5">
         Quick Stats

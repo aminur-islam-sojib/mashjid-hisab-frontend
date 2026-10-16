@@ -160,7 +160,7 @@ export function DonationsChartCard({
   };
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 h-auto lg:h-78.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-[14px] p-5 h-auto lg:h-78.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-[15px] font-bold text-foreground tracking-tight m-0">
