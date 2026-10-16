@@ -75,7 +75,7 @@ export function PrayerTimesCard({
   }, [now, coords]);
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 h-auto lg:h-[314px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 h-auto lg:h-78.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

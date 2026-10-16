@@ -66,7 +66,7 @@ export function UpcomingEventsCard({
   }, [events]);
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex-1 flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex-1 flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between pb-3">
         <h2 className="text-[15px] font-bold text-foreground tracking-tight m-0">

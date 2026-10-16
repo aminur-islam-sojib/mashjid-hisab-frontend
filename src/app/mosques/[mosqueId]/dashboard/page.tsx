@@ -109,9 +109,14 @@ interface DashboardReportData {
   donationsTrend?: {
     currentMonthIncome: string;
     formattedCurrentMonthIncome: string;
+    currentMonthLabel?: string;
     lastMonthIncome: string;
     formattedLastMonthIncome: string;
+    lastMonthLabel?: string;
     trendPercentage: number;
+    lastMonthTrendPercentage?: number;
+    currentMonthPoints?: DashboardDonationPoint[];
+    lastMonthPoints?: DashboardDonationPoint[];
     dataPoints: DashboardDonationPoint[];
   };
   recentMembers?: DashboardMemberItem[];
@@ -320,8 +325,12 @@ export default function MosqueDashboardPage() {
                 <DonationsChartCard
                   monthlyIncome={dashboardData?.donationsTrend?.currentMonthIncome ?? dashboardData?.thisMonth?.income ?? "0"}
                   lastMonthIncome={dashboardData?.donationsTrend?.lastMonthIncome ?? "0"}
+                  currentMonthLabel={dashboardData?.donationsTrend?.currentMonthLabel}
+                  lastMonthLabel={dashboardData?.donationsTrend?.lastMonthLabel}
                   trendPercentage={dashboardData?.donationsTrend?.trendPercentage ?? 0}
-                  dataPoints={dashboardData?.donationsTrend?.dataPoints ?? []}
+                  lastMonthTrendPercentage={dashboardData?.donationsTrend?.lastMonthTrendPercentage ?? 0}
+                  currentMonthPoints={dashboardData?.donationsTrend?.currentMonthPoints ?? dashboardData?.donationsTrend?.dataPoints ?? []}
+                  lastMonthPoints={dashboardData?.donationsTrend?.lastMonthPoints ?? []}
                 />
               </div>
 

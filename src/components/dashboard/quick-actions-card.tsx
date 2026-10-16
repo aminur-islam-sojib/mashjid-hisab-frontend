@@ -121,7 +121,7 @@ export function QuickActionsCard({
   ];
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl shadow-[0_2px_10px_rgba(16,60,48,0.05)] overflow-hidden">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl shadow-[0_2px_10px_rgba(16,60,48,0.05)] overflow-hidden">
       {/* Dark Teal Gradient Header with Islamic Arch Watermark */}
       <div className="relative overflow-hidden bg-linear-to-r from-[#0A5C47] to-[#0E7A5C] text-white p-[22px_20px_24px] flex items-center gap-3.5">
         {/* Arch Watermark */}
@@ -163,7 +163,7 @@ export function QuickActionsCard({
       <div className="grid grid-cols-2 gap-2.5 p-[18px_20px_20px] bg-card">
         {actions.map((act) => {
           const itemClasses = cn(
-            "qa h-20 rounded-xl bg-[#F2F8F5] dark:bg-emerald-950/40 text-[#12332B] dark:text-emerald-100",
+            "qa h-20 rounded-[10px] bg-[#F2F8F5] dark:bg-emerald-950/40 text-[#12332B] dark:text-emerald-100",
             "flex flex-col items-center justify-center gap-2.5 text-xs font-medium cursor-pointer",
             "border border-transparent hover:border-[#D0E5DC] dark:hover:border-emerald-800",
             "hover:bg-[#E1F2EB] dark:hover:bg-emerald-900/60 hover:text-[#0B5F49] dark:hover:text-emerald-300",

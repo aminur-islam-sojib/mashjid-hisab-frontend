@@ -39,7 +39,7 @@ export function FacilityUsageCard({
   const dashLength = Math.max(0, Math.min(314, Math.round((overallPct * 314) / 100)));
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-4 sm:p-[18px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-4 sm:p-4.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col ">
       {/* Header */}
       <div className="flex items-center justify-between pb-1">
         <h2 className="text-[13px] font-bold text-foreground tracking-tight m-0">
@@ -57,7 +57,7 @@ export function FacilityUsageCard({
       {funds.length > 0 ? (
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 mt-4">
           {/* Radial SVG Donut Gauge */}
-          <div className="relative w-[118px] h-[118px] shrink-0">
+          <div className="relative w-29.5 h-29.5 shrink-0">
             <svg
               width="118"
               height="118"

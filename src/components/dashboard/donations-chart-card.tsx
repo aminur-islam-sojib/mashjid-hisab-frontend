@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { formatCurrency } from "@/lib/money";
+import DonationsChartVector from "./donations-chart-vector";
 
 export interface DonationDataPoint {
   day: number;
@@ -14,7 +15,12 @@ export interface DonationDataPoint {
 interface DonationsChartCardProps {
   monthlyIncome?: string | bigint;
   lastMonthIncome?: string | bigint;
+  currentMonthLabel?: string;
+  lastMonthLabel?: string;
   trendPercentage?: number;
+  lastMonthTrendPercentage?: number;
+  currentMonthPoints?: DonationDataPoint[];
+  lastMonthPoints?: DonationDataPoint[];
   dataPoints?: DonationDataPoint[];
 }
 
@@ -31,7 +37,12 @@ function formatCompactK(poishaVal: bigint): string {
 export function DonationsChartCard({
   monthlyIncome = "0",
   lastMonthIncome = "0",
+  currentMonthLabel,
+  lastMonthLabel,
   trendPercentage = 0,
+  lastMonthTrendPercentage = 0,
+  currentMonthPoints = [],
+  lastMonthPoints = [],
   dataPoints = [],
 }: DonationsChartCardProps) {
   const [period, setPeriod] = React.useState<"This Month" | "Last Month">("This Month");
@@ -49,22 +60,36 @@ export function DonationsChartCard({
   }, []);
 
   const currentAmount = period === "This Month" ? monthlyIncome : lastMonthIncome;
+  const currentTrend = period === "This Month" ? trendPercentage : lastMonthTrendPercentage;
+  const comparisonText = period === "This Month"
+    ? `Compared to ${lastMonthLabel ? `last month (${lastMonthLabel})` : "previous period"}`
+    : "Compared to month prior";
+
   const formattedAmount = React.useMemo(() => {
     return formatCurrency(currentAmount || "0", { showDecimals: false });
   }, [currentAmount]);
 
+  const activePoints = React.useMemo(() => {
+    if (period === "This Month") {
+      if (currentMonthPoints && currentMonthPoints.length >= 2) return currentMonthPoints;
+      if (dataPoints && dataPoints.length >= 2) return dataPoints;
+    } else {
+      if (lastMonthPoints && lastMonthPoints.length >= 2) return lastMonthPoints;
+    }
+
+    const prefix = period === "This Month" ? (currentMonthLabel || "Day") : (lastMonthLabel || "Day");
+    return [
+      { day: 1, label: `${prefix} 1`, date: "", amount: "0" },
+      { day: 8, label: `${prefix} 8`, date: "", amount: "0" },
+      { day: 15, label: `${prefix} 15`, date: "", amount: "0" },
+      { day: 22, label: `${prefix} 22`, date: "", amount: "0" },
+      { day: 30, label: `${prefix} 30`, date: "", amount: "0" },
+    ];
+  }, [period, currentMonthPoints, lastMonthPoints, dataPoints, currentMonthLabel, lastMonthLabel]);
+
   // Dynamic Chart Plot Calculations
   const chartGeometry = React.useMemo(() => {
-    const defaultPoints: DonationDataPoint[] = [
-      { day: 1, label: "Day 1", date: "", amount: "0" },
-      { day: 8, label: "Day 8", date: "", amount: "0" },
-      { day: 15, label: "Day 15", date: "", amount: "0" },
-      { day: 22, label: "Day 22", date: "", amount: "0" },
-      { day: 31, label: "Day 31", date: "", amount: "0" },
-    ];
-
-    const pts = dataPoints && dataPoints.length >= 2 ? dataPoints : defaultPoints;
-
+    const pts = activePoints;
     const amounts = pts.map((p) => BigInt(p.amount || "0"));
     const maxVal = amounts.reduce((max, val) => (val > max ? val : max), 0n);
     const effectiveMax = maxVal > 0n ? maxVal : 100000n; // fallback scale ৳1,000
@@ -110,7 +135,7 @@ export function DonationsChartCard({
       lastCoord,
       yLabels,
     };
-  }, [dataPoints]);
+  }, [activePoints]);
 
   const renderTrend = (pct: number) => {
     if (pct > 0) {
@@ -135,7 +160,7 @@ export function DonationsChartCard({
   };
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 h-auto lg:h-78.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 h-auto lg:h-78.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-[15px] font-bold text-foreground tracking-tight m-0">
@@ -163,9 +188,8 @@ export function DonationsChartCard({
                     setPeriod(p);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 hover:bg-muted font-medium transition-colors cursor-pointer ${
-                    period === p ? "text-primary font-bold bg-muted/40" : "text-foreground"
-                  }`}
+                  className={`w-full text-left px-3 py-1.5 hover:bg-muted font-medium transition-colors cursor-pointer ${period === p ? "text-primary font-bold bg-muted/40" : "text-foreground"
+                    }`}
                 >
                   {p}
                 </button>
@@ -179,86 +203,17 @@ export function DonationsChartCard({
       <div className="mt-2.5">
         <div className="text-[26px] font-bold text-foreground leading-tight font-mono tabular-nums">
           {formattedAmount}{" "}
-          {renderTrend(trendPercentage)}
+          {renderTrend(currentTrend)}
         </div>
         <div className="text-xs text-[#5E766E] dark:text-muted-foreground mt-1 font-medium">
-          Compared to previous period
+          {comparisonText}
         </div>
       </div>
 
       {/* Area Chart Vector Canvas */}
-      <div className="w-full mt-1.5 flex-1 flex items-end">
-        <svg
-          viewBox="0 0 360 150"
-          className="w-full h-20.75"
-          role="img"
-          aria-label="Monthly donations trend"
-        >
-          <defs>
-            <linearGradient id="donationsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#0B8A63" stopOpacity="0.35" />
-              <stop offset="1" stopColor="#0B8A63" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
 
-          {/* Y-Axis Value Labels */}
-          <g fontSize="9" fill="#5E766E" className="font-mono">
-            {chartGeometry.yLabels.map((lbl) => (
-              <text key={lbl.y} x="0" y={lbl.y}>
-                {lbl.text}
-              </text>
-            ))}
+      <DonationsChartVector chartGeometry={chartGeometry} />
 
-            {/* X-Axis Milestone Date Labels */}
-            {chartGeometry.coords.map((c) => (
-              <text
-                key={c.x}
-                x={c.x}
-                y="146"
-                textAnchor="middle"
-                className="text-[9px]"
-              >
-                {c.label}
-              </text>
-            ))}
-          </g>
-
-          {/* Grid lines */}
-          <g stroke="#EAF1EE" className="dark:stroke-border/40">
-            <line x1="28" x2="360" y1="7" y2="7" />
-            <line x1="28" x2="360" y1="45" y2="45" />
-            <line x1="28" x2="360" y1="83" y2="83" />
-            <line x1="28" x2="360" y1="121" y2="121" />
-          </g>
-
-          {/* Area Fill */}
-          <path d={chartGeometry.fillPath} fill="url(#donationsGradient)" />
-
-          {/* Area Stroke */}
-          <path
-            d={chartGeometry.strokePath}
-            fill="none"
-            stroke="#0B8A63"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-
-          {/* Active Highlight Dot on latest milestone */}
-          <circle
-            cx={chartGeometry.lastCoord.x}
-            cy={chartGeometry.lastCoord.y}
-            r="4"
-            fill="#0B8A63"
-          />
-          <circle
-            cx={chartGeometry.lastCoord.x}
-            cy={chartGeometry.lastCoord.y}
-            r="7"
-            fill="#0B8A63"
-            fillOpacity="0.2"
-          />
-        </svg>
-      </div>
     </div>
   );
 }
