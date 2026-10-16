@@ -228,7 +228,7 @@ export function KpiCards({
               : "All caught up ✓"}
           </span>
           <Link
-            href={mosqueId ? `/mosques/${mosqueId}/transactions?tab=pending` : "#"}
+            href={mosqueId ? `/mosques/${mosqueId}/approvals` : "#"}
             className={`${pendingApprovalsCount > 0 ? "text-amber-700 dark:text-amber-400 font-medium" : "hover:text-primary"} transition-colors shrink-0 ml-1`}
           >
             {pendingApprovalsCount > 0 ? "Review →" : "History →"}

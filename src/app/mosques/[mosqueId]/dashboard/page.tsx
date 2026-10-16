@@ -300,7 +300,7 @@ export default function MosqueDashboardPage() {
                           </div>
                         </div>
                         <Link
-                          href={`/mosques/${mosqueId}/transactions?tab=pending`}
+                          href={`/mosques/${mosqueId}/approvals`}
                           className="shrink-0 self-end sm:self-center"
                         >
                           <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs h-8">
