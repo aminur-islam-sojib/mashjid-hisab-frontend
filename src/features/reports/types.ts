@@ -89,6 +89,7 @@ export interface FundBalance {
   id: string;
   name: string;
   isRestricted: boolean;
+  type?: string;
   balance?: string;
   currentBalance?: string;
   formattedBalance?: string;

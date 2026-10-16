@@ -1,7 +1,10 @@
+"use client";
+
 import * as React from "react";
-import { Landmark, PiggyBank, CheckCircle2 } from "lucide-react";
+import { Landmark, PiggyBank, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { formatCurrency } from "@/lib/money";
 import { BalancesReport } from "../types";
+import { Badge } from "@/components/ui/badge";
 
 interface BalancesViewProps {
   data?: BalancesReport;
@@ -15,101 +18,119 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Print-only Statement Header */}
-      <div className="hidden print:block pb-4 mb-2 border-b border-gray-300">
-        <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-          Statement of Financial Position (Balance Sheet)
-        </h2>
-        <div className="flex justify-between items-center text-xs text-gray-600 mt-1">
-          <span>
-            As of: {data?.asOf ? new Date(data.asOf).toLocaleDateString() : new Date().toLocaleDateString()}
-          </span>
-          <span>Printed on: {new Date().toLocaleDateString()}</span>
-        </div>
-      </div>
-
       {isLoading ? (
-        <div className="py-16 text-center text-gray-500">
-          Calculating fund and account balances...
+        <div className="py-20 text-center text-muted-foreground text-sm">
+          Calculating fund and depository account balances...
         </div>
       ) : !data ? (
-        <div className="py-16 text-center text-gray-500">
+        <div className="py-20 text-center text-muted-foreground text-sm">
           No balance sheet data returned.
         </div>
       ) : (
         <>
-          {/* Asset Accounts vs Fund Allocations */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Accounts (Assets) */}
-            <div className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-5 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <div className="flex items-center space-x-2 text-gray-900 font-bold">
-                  <Landmark className="w-5 h-5 text-[#006B5B]" />
-                  <span>Financial Accounts (Assets)</span>
+          {/* Dual-Column Statement: Assets vs Fund Equity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Left Column: Assets / Depository Accounts */}
+            <div className="bg-card rounded-lg border border-border shadow-xs p-4 sm:p-5 space-y-3.5 print:border-gray-800 print:rounded-none">
+              <div className="flex items-center justify-between pb-3 border-b border-border/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center text-primary print:border print:border-gray-800">
+                    <Landmark className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-foreground tracking-tight">
+                      Depository Assets (Cash & Bank)
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground">Where mosque funds are physically kept</p>
+                  </div>
                 </div>
-                <span className="text-lg font-black text-[#006B5B]">
+                <span className="text-base font-extrabold text-foreground font-mono tabular-nums print:text-gray-900">
                   {formatCurrency(totalAccounts)}
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {(data.accounts || []).length === 0 ? (
-                  <div className="text-xs text-gray-400 py-3 text-center">
+                  <div className="text-xs text-muted-foreground py-6 text-center">
                     No active accounts found.
                   </div>
                 ) : (
                   (data.accounts || []).map((acct) => (
                     <div
                       key={acct.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm"
+                      className="flex items-center justify-between p-2.5 rounded-md bg-muted/40 border border-border/60 hover:bg-muted/70 transition-colors text-xs print:bg-transparent print:border-gray-200"
                     >
-                      <div>
-                        <span className="font-semibold text-gray-900 block">
+                      <div className="min-w-0 pr-2">
+                        <span className="font-semibold text-foreground truncate block">
                           {acct.name}
                         </span>
-                        <span className="text-xs text-gray-400">{acct.type}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider">
+                          {acct.type}
+                        </span>
                       </div>
-                      <span className="font-bold text-gray-900">
+                      <span className="font-bold text-foreground font-mono tabular-nums shrink-0">
                         {formatCurrency(acct.balance || acct.currentBalance || "0")}
                       </span>
                     </div>
                   ))
                 )}
               </div>
+
+              {/* Total Summary Row */}
+              <div className="pt-3 border-t-2 border-border/90 flex items-center justify-between text-xs font-bold text-foreground print:border-gray-800">
+                <span>Total Assets in Vaults & Banks</span>
+                <span className="font-mono tabular-nums text-sm">
+                  {formatCurrency(totalAccounts)}
+                </span>
+              </div>
             </div>
 
-            {/* Funds (Equity) */}
-            <div className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-5 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <div className="flex items-center space-x-2 text-gray-900 font-bold">
-                  <PiggyBank className="w-5 h-5 text-[#006B5B]" />
-                  <span>Fund Allocations (Equity)</span>
+            {/* Right Column: Fund Equity & Reserves */}
+            <div className="bg-card rounded-lg border border-border shadow-xs p-4 sm:p-5 space-y-3.5 print:border-gray-800 print:rounded-none">
+              <div className="flex items-center justify-between pb-3 border-b border-border/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-600 print:border print:border-gray-800">
+                    <PiggyBank className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-foreground tracking-tight">
+                      Fund Reserves (Equity & Purpose)
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground">What the mosque money is allocated for</p>
+                  </div>
                 </div>
-                <span className="text-lg font-black text-[#006B5B]">
+                <span className="text-base font-extrabold text-foreground font-mono tabular-nums print:text-gray-900">
                   {formatCurrency(totalFunds)}
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {(data.funds || []).length === 0 ? (
-                  <div className="text-xs text-gray-400 py-3 text-center">
+                  <div className="text-xs text-muted-foreground py-6 text-center">
                     No active funds found.
                   </div>
                 ) : (
                   (data.funds || []).map((fund) => (
                     <div
                       key={fund.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm"
+                      className="flex items-center justify-between p-2.5 rounded-md bg-muted/40 border border-border/60 hover:bg-muted/70 transition-colors text-xs print:bg-transparent print:border-gray-200"
                     >
-                      <div>
-                        <span className="font-semibold text-gray-900 block">
-                          {fund.name}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {fund.isRestricted ? "Restricted Fund" : "Unrestricted"}
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-foreground truncate block">
+                            {fund.name}
+                          </span>
+                          {fund.isRestricted && (
+                            <Badge variant="gold" className="text-[9px] px-1.5 py-0 h-4 rounded">
+                              Restricted
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider">
+                          {fund.type || (fund.isRestricted ? "RESTRICTED FUND" : "UNRESTRICTED / GENERAL")}
                         </span>
                       </div>
-                      <span className="font-bold text-gray-900">
+                      <span className="font-bold text-foreground font-mono tabular-nums shrink-0">
                         {formatCurrency(fund.balance || fund.currentBalance || "0")}
                       </span>
                     </div>
@@ -118,47 +139,66 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
 
                 {/* Unallocated Row - displayed only when non-zero */}
                 {data.unallocated && data.unallocated !== "0" && (
-                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg text-sm border border-red-200">
+                  <div className="flex items-center justify-between p-2.5 rounded-md bg-destructive/10 border border-destructive/30 text-xs">
                     <div>
-                      <span className="font-semibold text-red-700 block">
+                      <span className="font-bold text-destructive block">
                         Unallocated Balance
                       </span>
-                      <span className="text-xs text-red-500">
-                        Physical balances exceeding assigned funds
+                      <span className="text-[10px] text-destructive/80">
+                        Physical account balances exceeding assigned funds
                       </span>
                     </div>
-                    <span className="font-bold text-red-700">
+                    <span className="font-extrabold text-destructive font-mono tabular-nums">
                       {formatCurrency(data.unallocated)}
                     </span>
                   </div>
                 )}
               </div>
+
+              {/* Total Summary Row */}
+              <div className="pt-3 border-t-2 border-border/90 flex items-center justify-between text-xs font-bold text-foreground print:border-gray-800">
+                <span>Total Fund Allocations</span>
+                <span className="font-mono tabular-nums text-sm">
+                  {formatCurrency(totalFunds)}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Integrity Indicator */}
+          {/* Institutional Audit Verification Certificate */}
           <div
-            className={`p-4 rounded-xl border flex items-center justify-between text-sm ${
+            className={`p-3.5 sm:p-4 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-all print:border-gray-800 print:bg-transparent ${
               isReconciled
-                ? "bg-[#E6F4F0] border-[#006B5B]/30 text-[#006B5B]"
-                : "bg-amber-50 border-amber-200 text-amber-800"
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-200"
+                : "bg-destructive/10 border-destructive/30 text-destructive dark:text-destructive"
             }`}
           >
-            <div className="flex items-center space-x-2">
-              <CheckCircle2 className="w-5 h-5" />
-              <span className="font-semibold">
-                Double-Entry Balance Verification Check
+            <div className="flex items-center gap-3">
+              {isReconciled ? (
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+              )}
+              <div>
+                <p className="font-bold text-xs sm:text-sm">
+                  {isReconciled
+                    ? "Accounting Invariant Verified: Assets Balance Exactly Matches Funds"
+                    : "Balance Sheet Discrepancy Detected"}
+                </p>
+                <p className="text-[11px] opacity-80 mt-0.5 font-mono">
+                  Invariant Check: Total Assets ({formatCurrency(totalAccounts)}) = Total Funds ({formatCurrency(totalFunds)})
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 font-mono font-bold text-xs">
+              <span className="px-2.5 py-1 rounded-md bg-card/80 border border-border shadow-2xs print:border-gray-800">
+                Variance: {isReconciled ? "৳0.00" : formatCurrency(data.unallocated || "0")}
               </span>
             </div>
-            <span className="text-xs font-medium">
-              {isReconciled
-                ? "Ledger reconciled: Total Accounts = Total Funds"
-                : `Variance detected: Accounts (${formatCurrency(totalAccounts)}) vs Funds (${formatCurrency(totalFunds)})`}
-            </span>
           </div>
         </>
       )}
     </div>
   );
 }
-

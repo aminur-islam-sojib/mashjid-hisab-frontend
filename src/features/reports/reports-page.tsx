@@ -18,6 +18,8 @@ import { useReportExport } from "./hooks/use-report-export";
 import { useClosePeriod } from "./hooks/use-close-period";
 import { useReopenPeriod } from "./hooks/use-reopen-period";
 import { ReportsHeader } from "./components/reports-header";
+import { OfficialLetterhead } from "./components/official-letterhead";
+import { ReportSignatories } from "./components/report-signatories";
 import { SummaryView } from "./components/summary-view";
 import { BalancesView } from "./components/balances-view";
 import { DonorsView } from "./components/donors-view";
@@ -36,6 +38,9 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
 
   // Tab State: default to "summary"
   const [activeTab, setActiveTab] = React.useState<ReportTab>("summary");
+
+  // View Mode: Executive Dashboard vs Official Statement
+  const [isOfficialMode, setIsOfficialMode] = React.useState(false);
 
   // Date Preset State: default to "this-month"
   const [datePreset, setDatePreset] = React.useState<DatePreset>("this-month");
@@ -220,15 +225,44 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
     return `${startDate} to ${endDate}`;
   }, [datePreset, now, currentYear, currentMonth, startDate, endDate]);
 
+  const statementTitle = React.useMemo(() => {
+    if (activeTab === "balances") {
+      return "Statement of Financial Position: Assets & Fund Balances (আর্থিক স্থিতি বিবরণী)";
+    }
+    if (activeTab === "donors") {
+      return "Schedule of Benefactors & Donor Giving Register (দাতা ও অনুদান তালিকা)";
+    }
+    return "Statement of Financial Activities: Receipts & Disbursements (আয় ও ব্যয় বিবরণী)";
+  }, [activeTab]);
+
+  const isReconciled = React.useMemo(() => {
+    if (!balancesData) return true;
+    return (
+      BigInt(balancesData.totalAccountsBalance || balancesData.totalAccountBalance || "0") ===
+      BigInt(balancesData.totalFundsBalance || balancesData.totalFundBalance || "0")
+    );
+  }, [balancesData]);
+
   return (
-    <div className="max-w-[1100px] mx-auto space-y-6">
+    <div className="  space-y-6">
       {/* 1. Header (Answers ONE plain user question + Primary action) */}
       <ReportsHeader
         onExportCsv={handleExportCsv}
         onPrintPdf={handlePrintPdf}
         isExporting={exportMutation.isPending}
         selectedPeriodLabel={selectedPeriodLabel}
+        isOfficialMode={isOfficialMode}
+        onToggleOfficialMode={setIsOfficialMode}
       />
+
+      {/* Official Institutional Letterhead (Shown in Official Mode and always on Print) */}
+      <div className={isOfficialMode ? "block" : "hidden print:block"}>
+        <OfficialLetterhead
+          title={statementTitle}
+          periodLabel={selectedPeriodLabel}
+          isReconciled={isReconciled}
+        />
+      </div>
 
       {/* 2. Preset Filter Chips (Default: This month) */}
       <div className="space-y-3 print:hidden">
@@ -237,7 +271,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             type="button"
             onClick={() => handlePresetSelect("this-month")}
             className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0",
+              "px-3 py-1.5 rounded-md text-xs font-semibold transition-all shrink-0",
               datePreset === "this-month"
                 ? "bg-primary text-primary-foreground shadow-xs"
                 : "bg-card text-muted-foreground border border-border hover:bg-muted hover:text-foreground"
@@ -250,7 +284,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             type="button"
             onClick={() => handlePresetSelect("last-month")}
             className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0",
+              "px-3 py-1.5 rounded-md text-xs font-semibold transition-all shrink-0",
               datePreset === "last-month"
                 ? "bg-primary text-primary-foreground shadow-xs"
                 : "bg-card text-muted-foreground border border-border hover:bg-muted hover:text-foreground"
@@ -263,7 +297,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             type="button"
             onClick={() => handlePresetSelect("this-year")}
             className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0",
+              "px-3 py-1.5 rounded-md text-xs font-semibold transition-all shrink-0",
               datePreset === "this-year"
                 ? "bg-primary text-primary-foreground shadow-xs"
                 : "bg-card text-muted-foreground border border-border hover:bg-muted hover:text-foreground"
@@ -276,7 +310,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             type="button"
             onClick={() => handlePresetSelect("custom")}
             className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0",
+              "px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0",
               datePreset === "custom"
                 ? "bg-primary text-primary-foreground shadow-xs"
                 : "bg-card text-muted-foreground border border-border hover:bg-muted hover:text-foreground"
@@ -289,7 +323,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
 
         {/* Custom Range Date Pickers (Shown only when Custom is active) */}
         {datePreset === "custom" && (
-          <div className="flex flex-wrap items-center gap-3 p-3 bg-card rounded-xl border border-border text-xs shadow-xs">
+          <div className="flex flex-wrap items-center gap-3 p-3 bg-card rounded-md border border-border text-xs shadow-xs">
             <div className="flex items-center gap-1.5">
               <span className="font-semibold text-muted-foreground uppercase text-[10px]">
                 From:
@@ -298,7 +332,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-2.5 py-1 text-xs border border-border bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
+                className="px-2.5 py-1 text-xs border border-border bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
               />
             </div>
 
@@ -310,7 +344,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-2.5 py-1 text-xs border border-border bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
+                className="px-2.5 py-1 text-xs border border-border bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
               />
             </div>
           </div>
@@ -318,9 +352,14 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
       </div>
 
       {/* 3. Exactly 3 Headline Numbers (Money in, Money out, Left over) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div
+        className={cn(
+          "grid grid-cols-1 sm:grid-cols-3 gap-4",
+          isOfficialMode ? "hidden" : "print:hidden"
+        )}
+      >
         {/* Money in */}
-        <div className="bg-card p-5 rounded-2xl border border-border shadow-xs hover:border-emerald-300 dark:hover:border-emerald-800 transition-all">
+        <div className="bg-card p-4 sm:p-5 rounded-lg border border-border shadow-xs hover:border-emerald-300 dark:hover:border-emerald-800 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Money in
@@ -328,7 +367,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             {incomeDelta && (
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full",
+                  "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md",
                   incomeDelta.isPositive
                     ? "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 dark:text-emerald-300"
                     : "text-rose-700 bg-rose-50 dark:bg-rose-950/50 dark:text-rose-300"
@@ -344,7 +383,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             )}
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-foreground tracking-tight">
+            <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
               {formatCurrency(totalIncomeVal, { showDecimals: false })}
             </span>
           </div>
@@ -354,19 +393,19 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
         </div>
 
         {/* Money out */}
-        <div className="bg-card p-5 rounded-2xl border border-border shadow-xs hover:border-rose-300 dark:hover:border-rose-800 transition-all">
+        <div className="bg-card p-4 sm:p-5 rounded-lg border border-border shadow-xs hover:border-rose-300 dark:hover:border-rose-800 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Money out
             </span>
             {expenseDelta && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
                 {expenseDelta.text}
               </span>
             )}
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-foreground tracking-tight">
+            <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
               {formatCurrency(totalExpenseVal, { showDecimals: false })}
             </span>
           </div>
@@ -378,7 +417,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
         {/* Left over */}
         <div
           className={cn(
-            "bg-card p-5 rounded-2xl border shadow-xs transition-all",
+            "bg-card p-4 sm:p-5 rounded-lg border shadow-xs transition-all",
             isNetPositive
               ? "border-emerald-300/80 bg-gradient-to-br from-card to-emerald-50/20 dark:to-emerald-950/20"
               : "border-rose-300/80 bg-gradient-to-br from-card to-rose-50/20 dark:to-rose-950/20"
@@ -397,7 +436,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             </span>
             <span
               className={cn(
-                "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full",
+                "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md",
                 isNetPositive
                   ? "text-emerald-700 bg-emerald-100/70 dark:bg-emerald-950/60 dark:text-emerald-300"
                   : "text-rose-700 bg-rose-100/70 dark:bg-rose-950/60 dark:text-rose-300"
@@ -409,7 +448,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
           <div className="mt-3 flex items-baseline gap-2">
             <span
               className={cn(
-                "text-3xl font-extrabold tracking-tight",
+                "text-2xl sm:text-3xl font-extrabold tracking-tight font-mono tabular-nums",
                 isNetPositive
                   ? "text-emerald-700 dark:text-emerald-400"
                   : "text-rose-700 dark:text-rose-400"
@@ -479,6 +518,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
           isLoading={isIncExpLoading}
           startDate={startDate}
           endDate={endDate}
+          isOfficialMode={isOfficialMode}
         />
       )}
 
@@ -504,13 +544,15 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
 
       {/* 6. Month Locking (Moved to quiet bottom action for Admin/Treasurer) */}
       {canManageFinances && (
-        <PeriodLockView
-          targetPeriod={targetPeriod}
-          onTargetPeriodChange={setTargetPeriod}
-          onClosePeriod={handleClosePeriod}
-          onOpenReopenModal={() => setIsReopenModalOpen(true)}
-          isClosing={closePeriodMutation.isPending}
-        />
+        <div className="print:hidden">
+          <PeriodLockView
+            targetPeriod={targetPeriod}
+            onTargetPeriodChange={setTargetPeriod}
+            onClosePeriod={handleClosePeriod}
+            onOpenReopenModal={() => setIsReopenModalOpen(true)}
+            isClosing={closePeriodMutation.isPending}
+          />
+        </div>
       )}
 
       {/* Reopen Period Modal */}
