@@ -2,13 +2,14 @@
 
 import * as React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { History, ArrowLeftRight, Landmark, PiggyBank } from "lucide-react";
+import { History, ArrowLeftRight, Landmark, PiggyBank, Tags } from "lucide-react";
 import { TransactionsView } from "@/features/transactions/components/transactions-view";
 import { TransfersView } from "@/features/transfers/components/transfers-view";
 import { AccountsView } from "@/features/accounts/components/accounts-view";
 import { FundsView } from "@/features/funds/components/funds-view";
+import { CategoriesView } from "@/features/categories/components/categories-view";
 
-type MoneyTab = "transactions" | "transfers" | "accounts" | "funds";
+type MoneyTab = "transactions" | "transfers" | "accounts" | "funds" | "categories";
 
 function MoneyContent() {
   const params = useParams();
@@ -18,7 +19,10 @@ function MoneyContent() {
 
   const tabParam = searchParams?.get("tab") as MoneyTab | null;
   const currentTab: MoneyTab =
-    tabParam === "transfers" || tabParam === "accounts" || tabParam === "funds"
+    tabParam === "transfers" ||
+    tabParam === "accounts" ||
+    tabParam === "funds" ||
+    tabParam === "categories"
       ? tabParam
       : "transactions";
 
@@ -35,7 +39,7 @@ function MoneyContent() {
             Money & Accounts
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Master transactions, bank transfers, physical accounts, and fund reserves.
+            Master transactions, bank transfers, physical accounts, fund reserves, and categories.
           </p>
         </div>
       </div>
@@ -93,6 +97,19 @@ function MoneyContent() {
           <PiggyBank className="w-3.5 h-3.5" />
           <span>Funds</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange("categories")}
+          className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+            currentTab === "categories"
+              ? "bg-card text-foreground shadow-xs"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Tags className="w-3.5 h-3.5" />
+          <span>Categories</span>
+        </button>
       </div>
 
       {/* Tab Panels */}
@@ -100,6 +117,7 @@ function MoneyContent() {
       {currentTab === "transfers" && <TransfersView mosqueId={mosqueId} />}
       {currentTab === "accounts" && <AccountsView mosqueId={mosqueId} />}
       {currentTab === "funds" && <FundsView mosqueId={mosqueId} />}
+      {currentTab === "categories" && <CategoriesView mosqueId={mosqueId} />}
     </div>
   );
 }

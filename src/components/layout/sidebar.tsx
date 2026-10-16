@@ -114,13 +114,14 @@ export function Sidebar({ className }: { className?: string }) {
         href: `${base}/money`,
         icon: Landmark,
         allowedRoles: ROUTE_PERMISSIONS["transactions"],
-        subtitle: "4 tabs",
+        subtitle: "5 tabs",
         matchPrefixes: [
           `${base}/money`,
           `${base}/transactions`,
           `${base}/transfers`,
           `${base}/accounts`,
           `${base}/funds`,
+          `${base}/categories`,
         ],
       },
       {

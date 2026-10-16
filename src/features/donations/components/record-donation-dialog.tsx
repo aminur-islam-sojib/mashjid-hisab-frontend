@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,11 @@ import { createDonationSchema, CreateDonationFormData } from "../validation";
 import { FundItem } from "@/features/funds/types";
 import { AccountItem } from "@/features/accounts/types";
 import { CategoryItem } from "@/features/categories/types";
+import { CategoryDialog } from "@/features/categories/components/category-dialog";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha } from "@/lib/money";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 
 interface RecordDonationDialogProps {
   isOpen: boolean;
@@ -35,7 +37,9 @@ export function RecordDonationDialog({
   categories,
   onSuccess,
 }: RecordDonationDialogProps) {
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = React.useState(false);
   const prevIsOpenRef = React.useRef(false);
 
   const incomeCategories = React.useMemo(() => {
@@ -182,6 +186,7 @@ export function RecordDonationDialog({
   };
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -269,9 +274,18 @@ export function RecordDonationDialog({
         {/* Category & Source */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">
-              Income Category <span className="text-destructive">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-foreground">
+                Income Category <span className="text-destructive">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsCategoryDialogOpen(true)}
+                className="text-[11px] text-primary hover:underline font-semibold inline-flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" /> New Category
+              </button>
+            </div>
             <select
               {...register("categoryId")}
               disabled={isSubmitting || filteredCategories.length === 0}
@@ -386,5 +400,17 @@ export function RecordDonationDialog({
         </div>
       </form>
     </Modal>
+
+    <CategoryDialog
+      isOpen={isCategoryDialogOpen}
+      onClose={() => setIsCategoryDialogOpen(false)}
+      mosqueId={mosqueId}
+      funds={funds}
+      defaultType="INCOME"
+      onSuccess={() => {
+        queryClient.invalidateQueries({ queryKey: ["mosque", mosqueId, "categories"] });
+      }}
+    />
+    </>
   );
 }

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,11 @@ import { createExpenseSchema, CreateExpenseFormData } from "../validation";
 import { FundItem } from "@/features/funds/types";
 import { AccountItem } from "@/features/accounts/types";
 import { CategoryItem } from "@/features/categories/types";
+import { CategoryDialog } from "@/features/categories/components/category-dialog";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { majorToPoisha } from "@/lib/money";
-import { Loader2, UploadCloud, FileCheck, X } from "lucide-react";
+import { Loader2, UploadCloud, FileCheck, X, Plus } from "lucide-react";
 
 interface RecordExpenseDialogProps {
   isOpen: boolean;
@@ -35,7 +37,9 @@ export function RecordExpenseDialog({
   categories,
   onSuccess,
 }: RecordExpenseDialogProps) {
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = React.useState(false);
   const { key: idempotencyKey } = useIdempotencyKey(isOpen);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isUploadingFile, setIsUploadingFile] = React.useState(false);
@@ -159,6 +163,7 @@ export function RecordExpenseDialog({
   };
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -273,9 +278,18 @@ export function RecordExpenseDialog({
 
         {/* Category */}
         <div>
-          <label className="block text-xs font-semibold text-foreground mb-1.5">
-            Expense Category <span className="text-destructive">*</span>
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-semibold text-foreground">
+              Expense Category <span className="text-destructive">*</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsCategoryDialogOpen(true)}
+              className="text-[11px] text-primary hover:underline font-semibold inline-flex items-center gap-1"
+            >
+              <Plus className="w-3 h-3" /> New Category
+            </button>
+          </div>
           <select
             {...register("categoryId")}
             disabled={isSubmitting}
@@ -364,6 +378,18 @@ export function RecordExpenseDialog({
         </div>
       </form>
     </Modal>
+
+    <CategoryDialog
+      isOpen={isCategoryDialogOpen}
+      onClose={() => setIsCategoryDialogOpen(false)}
+      mosqueId={mosqueId}
+      funds={funds}
+      defaultType="EXPENSE"
+      onSuccess={() => {
+        queryClient.invalidateQueries({ queryKey: ["mosque", mosqueId, "categories"] });
+      }}
+    />
+  </>
   );
 }
 

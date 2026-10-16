@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingDown, Plus, Ban, Loader2, AlertCircle, ChevronLeft, ChevronRight, Paperclip } from "lucide-react";
+import { TrendingDown, Plus, Ban, Loader2, AlertCircle, ChevronLeft, ChevronRight, Paperclip, Tags } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { ExpenseItem } from "@/features/expenses/types";
@@ -12,7 +13,8 @@ import { VoidExpenseDialog } from "@/features/expenses/components/void-expense-d
 import { FundItem } from "@/features/funds/types";
 import { AccountItem } from "@/features/accounts/types";
 import { CategoryItem } from "@/features/categories/types";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -76,13 +78,22 @@ export default function ExpensesPage() {
         </div>
 
         {isExpenseOps && (
-          <Button
-            size="sm"
-            onClick={() => setIsRecordOpen(true)}
-            className="gap-1.5 self-start sm:self-auto font-semibold"
-          >
-            <Plus className="w-4 h-4" /> Record Expense
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Link
+              href={`/mosques/${mosqueId}/money?tab=categories`}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5 font-semibold text-xs")}
+            >
+              <Tags className="w-3.5 h-3.5 text-muted-foreground" />
+              Categories
+            </Link>
+            <Button
+              size="sm"
+              onClick={() => setIsRecordOpen(true)}
+              className="gap-1.5 font-semibold text-xs"
+            >
+              <Plus className="w-4 h-4" /> Record Expense
+            </Button>
+          </div>
         )}
       </div>
 
