@@ -4,7 +4,7 @@ import * as React from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Tags, Plus, Edit2, Archive, Loader2, AlertCircle } from "lucide-react";
+import { Tags, Plus, Edit2, Archive, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { CategoryItem } from "@/features/categories/types";
 import { CategoryDialog } from "@/features/categories/components/category-dialog";
@@ -53,6 +53,25 @@ export default function CategoriesPage() {
     },
   });
 
+  const seedMutation = useMutation({
+    mutationFn: () =>
+      apiClient.post<{ createdCount: number; skippedCount: number; totalCategories: number }>(
+        `/mosques/${mosqueId}/categories/seed`
+      ),
+    onSuccess: (res: any) => {
+      const data = res?.data || res;
+      toast.success(
+        `Standard categories initialized: ${data.createdCount} added, ${data.skippedCount} already existed.`
+      );
+      queryClient.invalidateQueries({ queryKey: ["mosque", mosqueId, "categories"] });
+    },
+    onError: (err: ApiError) => {
+      toast.error("Failed to seed categories", {
+        description: err.message,
+      });
+    },
+  });
+
   const isFinOps = canAccess(FINANCIAL_OPERATOR_ROLES);
   const isAdmin = canAccess(ADMIN_ONLY_ROLES);
 
@@ -75,16 +94,32 @@ export default function CategoriesPage() {
         </div>
 
         {isFinOps && (
-          <Button
-            size="sm"
-            onClick={() => {
-              setEditingCategory(null);
-              setIsDialogOpen(true);
-            }}
-            className="gap-1.5 self-start sm:self-auto font-semibold"
-          >
-            <Plus className="w-4 h-4" /> Add Category
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => seedMutation.mutate()}
+              disabled={seedMutation.isPending}
+              className="gap-1.5 font-semibold"
+            >
+              {seedMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-primary" />
+              )}
+              Seed Standard Categories
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditingCategory(null);
+                setIsDialogOpen(true);
+              }}
+              className="gap-1.5 font-semibold"
+            >
+              <Plus className="w-4 h-4" /> Add Category
+            </Button>
+          </div>
         )}
       </div>
 
@@ -200,6 +235,34 @@ export default function CategoriesPage() {
             <p className="text-xs text-muted-foreground max-w-xs mx-auto">
               Add categories to classify entries when recording transactions.
             </p>
+            {isFinOps && (
+              <div className="pt-2 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => seedMutation.mutate()}
+                  disabled={seedMutation.isPending}
+                  className="gap-1.5"
+                >
+                  {seedMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  )}
+                  Seed Standard Categories
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingCategory(null);
+                    setIsDialogOpen(true);
+                  }}
+                  className="gap-1.5"
+                >
+                  <Plus className="w-4 h-4" /> Add Category
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>
