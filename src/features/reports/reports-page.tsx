@@ -419,8 +419,8 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
           className={cn(
             "bg-card p-4 sm:p-5 rounded-lg border shadow-xs transition-all",
             isNetPositive
-              ? "border-emerald-300/80 bg-gradient-to-br from-card to-emerald-50/20 dark:to-emerald-950/20"
-              : "border-rose-300/80 bg-gradient-to-br from-card to-rose-50/20 dark:to-rose-950/20"
+              ? "border-emerald-300/80 bg-linear-to-br from-card to-emerald-50/20 dark:to-emerald-950/20"
+              : "border-rose-300/80 bg-linear-to-br from-card to-rose-50/20 dark:to-rose-950/20"
           )}
         >
           <div className="flex items-center justify-between">
