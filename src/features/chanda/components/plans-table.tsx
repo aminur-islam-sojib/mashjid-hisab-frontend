@@ -73,7 +73,7 @@ export function PlansTable({
                 <Td>
                   <Badge variant="outline">{plan.frequency}</Badge>
                 </Td>
-                <Td className="text-xs text-gray-700 font-mono">
+                <Td className="text-xs text-gray-700 font-sans tabular-nums">
                   {plan.startMonth}
                 </Td>
                 <Td>

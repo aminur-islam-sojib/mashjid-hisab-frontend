@@ -89,6 +89,9 @@ export function DonationReceiptDialog({
       usePortal={true}
     >
       <style>{`
+        .receipt-sheet .font-mono {
+          font-family: "DejaVu Sans Mono", var(--font-mono), monospace !important;
+        }
         @media print {
           @page {
             size: A4 portrait;
@@ -121,6 +124,9 @@ export function DonationReceiptDialog({
             page-break-inside: avoid !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          .receipt-sheet .font-mono {
+            font-family: "DejaVu Sans Mono", monospace !important;
           }
         }
       `}</style>

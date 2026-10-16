@@ -201,7 +201,7 @@ export function DonationsChartCard({
 
       {/* Main Metric */}
       <div className="mt-2.5">
-        <div className="text-[26px] font-bold text-foreground leading-tight font-mono tabular-nums">
+        <div className="text-[26px] font-bold text-foreground leading-tight font-sans tabular-nums">
           {formattedAmount}{" "}
           {renderTrend(currentTrend)}
         </div>

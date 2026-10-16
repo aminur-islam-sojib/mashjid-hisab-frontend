@@ -44,7 +44,7 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
                     <p className="text-[11px] text-muted-foreground">Where mosque funds are physically kept</p>
                   </div>
                 </div>
-                <span className="text-base font-extrabold text-foreground font-mono tabular-nums print:text-gray-900">
+                <span className="text-base font-extrabold text-foreground font-sans tabular-nums print:text-gray-900">
                   {formatCurrency(totalAccounts)}
                 </span>
               </div>
@@ -64,11 +64,11 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
                         <span className="font-semibold text-foreground truncate block">
                           {acct.name}
                         </span>
-                        <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                           {acct.type}
                         </span>
                       </div>
-                      <span className="font-bold text-foreground font-mono tabular-nums shrink-0">
+                      <span className="font-bold text-foreground font-sans tabular-nums shrink-0">
                         {formatCurrency(acct.balance || acct.currentBalance || "0")}
                       </span>
                     </div>
@@ -79,7 +79,7 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
               {/* Total Summary Row */}
               <div className="pt-3 border-t-2 border-border/90 flex items-center justify-between text-xs font-bold text-foreground print:border-gray-800">
                 <span>Total Assets in Vaults & Banks</span>
-                <span className="font-mono tabular-nums text-sm">
+                <span className="font-sans tabular-nums text-sm">
                   {formatCurrency(totalAccounts)}
                 </span>
               </div>
@@ -99,7 +99,7 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
                     <p className="text-[11px] text-muted-foreground">What the mosque money is allocated for</p>
                   </div>
                 </div>
-                <span className="text-base font-extrabold text-foreground font-mono tabular-nums print:text-gray-900">
+                <span className="text-base font-extrabold text-foreground font-sans tabular-nums print:text-gray-900">
                   {formatCurrency(totalFunds)}
                 </span>
               </div>
@@ -126,11 +126,11 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
                             </Badge>
                           )}
                         </div>
-                        <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                           {fund.type || (fund.isRestricted ? "RESTRICTED FUND" : "UNRESTRICTED / GENERAL")}
                         </span>
                       </div>
-                      <span className="font-bold text-foreground font-mono tabular-nums shrink-0">
+                      <span className="font-bold text-foreground font-sans tabular-nums shrink-0">
                         {formatCurrency(fund.balance || fund.currentBalance || "0")}
                       </span>
                     </div>
@@ -148,7 +148,7 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
                         Physical account balances exceeding assigned funds
                       </span>
                     </div>
-                    <span className="font-extrabold text-destructive font-mono tabular-nums">
+                    <span className="font-extrabold text-destructive font-sans tabular-nums">
                       {formatCurrency(data.unallocated)}
                     </span>
                   </div>
@@ -158,7 +158,7 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
               {/* Total Summary Row */}
               <div className="pt-3 border-t-2 border-border/90 flex items-center justify-between text-xs font-bold text-foreground print:border-gray-800">
                 <span>Total Fund Allocations</span>
-                <span className="font-mono tabular-nums text-sm">
+                <span className="font-sans tabular-nums text-sm">
                   {formatCurrency(totalFunds)}
                 </span>
               </div>
@@ -185,14 +185,14 @@ export function BalancesView({ data, isLoading }: BalancesViewProps) {
                     ? "Accounting Invariant Verified: Assets Balance Exactly Matches Funds"
                     : "Balance Sheet Discrepancy Detected"}
                 </p>
-                <p className="text-[11px] opacity-80 mt-0.5 font-mono">
+                <p className="text-[11px] opacity-80 mt-0.5">
                   Invariant Check: Total Assets ({formatCurrency(totalAccounts)}) = Total Funds ({formatCurrency(totalFunds)})
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 font-mono font-bold text-xs">
-              <span className="px-2.5 py-1 rounded-md bg-card/80 border border-border shadow-2xs print:border-gray-800">
+            <div className="flex items-center gap-2 font-bold text-xs">
+              <span className="px-2.5 py-1 rounded-md bg-card/80 border border-border shadow-2xs print:border-gray-800 font-sans tabular-nums">
                 Variance: {isReconciled ? "৳0.00" : formatCurrency(data.unallocated || "0")}
               </span>
             </div>

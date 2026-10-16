@@ -38,7 +38,7 @@ function DonationsChartVector({ chartGeometry }: DonationsChartVectorProps) {
                 </defs>
 
                 {/* Y-Axis Value Labels */}
-                <g fontSize="9" fill="#5E766E" className="font-mono">
+                <g fontSize="9" fill="#5E766E" className="font-sans">
                     {chartGeometry.yLabels.map((lbl) => (
                         <text key={lbl.y} x="0" y={lbl.y}>
                             {lbl.text}

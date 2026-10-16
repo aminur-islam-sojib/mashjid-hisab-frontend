@@ -90,7 +90,7 @@ export function FacilityUsageCard({
                 fontSize="22"
                 fontWeight="700"
                 fill="#12332B"
-                className="dark:fill-white font-mono"
+                className="dark:fill-white font-sans"
               >
                 {overallPct}%
               </text>
@@ -121,7 +121,7 @@ export function FacilityUsageCard({
                   />
                   <span className="truncate">{f.name}</span>
                 </span>
-                <span className="font-semibold text-foreground font-mono tabular-nums ml-2">
+                <span className="font-semibold text-foreground font-sans tabular-nums ml-2">
                   {f.percentage}%
                 </span>
               </div>

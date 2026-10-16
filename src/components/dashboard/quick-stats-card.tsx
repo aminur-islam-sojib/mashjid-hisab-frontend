@@ -59,7 +59,7 @@ export function QuickStatsCard({ stats }: QuickStatsCardProps) {
             className="qs border border-[#E4ECE9] dark:border-border/80 rounded-[10px] p-2.5 flex flex-col gap-1 text-[10px] text-[#5E766E] dark:text-muted-foreground bg-[#F6FAF8]/50 dark:bg-muted/10 hover:border-primary/40 transition-colors"
           >
             <span className="truncate font-medium">{s.title}</span>
-            <strong className="text-lg sm:text-[19px] font-bold text-[#12332B] dark:text-foreground font-mono leading-tight">
+            <strong className="text-lg sm:text-[19px] font-bold text-[#12332B] dark:text-foreground font-sans leading-tight">
               {s.val}
             </strong>
             <span className="text-[10px] font-medium text-[#0B8A63] dark:text-emerald-400 truncate">

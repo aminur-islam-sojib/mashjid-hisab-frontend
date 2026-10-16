@@ -72,7 +72,7 @@ export function DonorsView({
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
                 Contributing Donors
               </span>
-              <div className="text-xl sm:text-2xl font-extrabold text-foreground font-mono tabular-nums">
+              <div className="text-xl sm:text-2xl font-extrabold text-foreground font-sans tabular-nums">
                 {totalDonorsCount}
               </div>
             </div>
@@ -87,7 +87,7 @@ export function DonorsView({
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
                   Contribution Receipts
                 </span>
-                <div className="text-xl sm:text-2xl font-extrabold text-foreground font-mono tabular-nums">
+                <div className="text-xl sm:text-2xl font-extrabold text-foreground font-sans tabular-nums">
                   {totalDonationsCount}
                 </div>
               </div>
@@ -103,7 +103,7 @@ export function DonorsView({
                 <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block">
                   Total Contributions
                 </span>
-                <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 font-mono tabular-nums">
+                <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 font-sans tabular-nums">
                   {formatCurrency(totalGiving)}
                 </div>
               </div>
@@ -135,7 +135,7 @@ export function DonorsView({
             <TableBody>
               {donorList.map((d, idx) => (
                 <TableRow key={d.id || idx}>
-                  <TableCell className="font-mono text-xs">
+                  <TableCell className="text-xs">
                     {idx === 0 ? (
                       <Badge variant="gold" className="text-[10px] px-1.5 py-0 h-4.5 rounded">#1</Badge>
                     ) : idx === 1 ? (
@@ -150,16 +150,16 @@ export function DonorsView({
                     <div>
                       <span>{d.name || d.donorName || "Congregant"}</span>
                       {d.phone && (
-                        <span className="block text-[11px] font-normal text-muted-foreground font-mono mt-0.5">
+                        <span className="block text-[11px] font-normal text-muted-foreground mt-0.5">
                           {d.phone}
                         </span>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground font-mono tabular-nums">
+                  <TableCell className="text-right text-xs text-muted-foreground font-sans tabular-nums">
                     {d.donationCount || d.count || 1}
                   </TableCell>
-                  <TableCell className="text-right font-extrabold text-foreground font-mono tabular-nums text-xs">
+                  <TableCell className="text-right font-extrabold text-foreground font-sans tabular-nums text-xs">
                     {formatCurrency(d.totalGiven || d.totalAmount || "0")}
                   </TableCell>
                 </TableRow>

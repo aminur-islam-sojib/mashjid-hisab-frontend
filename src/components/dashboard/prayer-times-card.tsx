@@ -114,7 +114,7 @@ export function PrayerTimesCard({
                   }`}
               />
               <span className="text-xs font-medium">{prayer.name}</span>
-              <b className="text-[14px] text-[#12332B] dark:text-white font-bold font-mono">
+              <b className="text-[14px] text-[#12332B] dark:text-white font-bold font-sans">
                 {prayer.time}
               </b>
 

@@ -137,7 +137,7 @@ export function SummaryView({
                 Schedule A: Inflow & Revenue Collections (আয় সমূহ)
               </h3>
             </div>
-            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 font-mono tabular-nums print:text-gray-900">
+            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 font-sans tabular-nums print:text-gray-900">
               {formatCurrency(totalIncomePoisha)}
             </span>
           </div>
@@ -171,13 +171,13 @@ export function SummaryView({
                       <TableCell className="font-semibold text-foreground text-xs">
                         {cat.categoryName || cat.name || "General Donations"}
                       </TableCell>
-                      <TableCell className="text-center text-xs text-muted-foreground font-mono tabular-nums">
+                      <TableCell className="text-center text-xs text-muted-foreground font-sans tabular-nums">
                         {cat.count ?? 1}
                       </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground font-mono tabular-nums">
+                      <TableCell className="text-right text-xs text-muted-foreground font-sans tabular-nums">
                         {sharePct}%
                       </TableCell>
-                      <TableCell className="text-right font-bold text-foreground font-mono tabular-nums text-xs">
+                      <TableCell className="text-right font-bold text-foreground font-sans tabular-nums text-xs">
                         {formatCurrency(amountPoisha)}
                       </TableCell>
                     </TableRow>
@@ -187,11 +187,11 @@ export function SummaryView({
               {/* Formal Accounting Subtotal */}
               <TableRow className="border-t-2 border-border/90 bg-muted/20 font-bold text-xs print:border-gray-800">
                 <TableCell>Total Inflows (Schedule A)</TableCell>
-                <TableCell className="text-center font-mono tabular-nums">
+                <TableCell className="text-center font-sans tabular-nums">
                   {incomeCategories.reduce((acc, c) => acc + (c.count ?? 1), 0)}
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">100%</TableCell>
-                <TableCell className="text-right font-mono tabular-nums text-emerald-700 dark:text-emerald-400 print:text-gray-900 text-sm">
+                <TableCell className="text-right font-sans tabular-nums">100%</TableCell>
+                <TableCell className="text-right font-sans tabular-nums text-emerald-700 dark:text-emerald-400 print:text-gray-900 text-sm">
                   {formatCurrency(totalIncomePoisha)}
                 </TableCell>
               </TableRow>
@@ -210,7 +210,7 @@ export function SummaryView({
                 Schedule B: Outflow & Operational Expenditures (ব্যয় সমূহ)
               </h3>
             </div>
-            <span className="text-xs font-bold text-rose-700 dark:text-rose-400 font-mono tabular-nums print:text-gray-900">
+            <span className="text-xs font-bold text-rose-700 dark:text-rose-400 font-sans tabular-nums print:text-gray-900">
               {formatCurrency(totalExpensePoisha)}
             </span>
           </div>
@@ -244,13 +244,13 @@ export function SummaryView({
                       <TableCell className="font-semibold text-foreground text-xs">
                         {cat.categoryName || cat.name || "General Operational"}
                       </TableCell>
-                      <TableCell className="text-center text-xs text-muted-foreground font-mono tabular-nums">
+                      <TableCell className="text-center text-xs text-muted-foreground font-sans tabular-nums">
                         {cat.count ?? 1}
                       </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground font-mono tabular-nums">
+                      <TableCell className="text-right text-xs text-muted-foreground font-sans tabular-nums">
                         {sharePct}%
                       </TableCell>
-                      <TableCell className="text-right font-bold text-foreground font-mono tabular-nums text-xs">
+                      <TableCell className="text-right font-bold text-foreground font-sans tabular-nums text-xs">
                         {formatCurrency(amountPoisha)}
                       </TableCell>
                     </TableRow>
@@ -260,11 +260,11 @@ export function SummaryView({
               {/* Formal Accounting Subtotal */}
               <TableRow className="border-t-2 border-border/90 bg-muted/20 font-bold text-xs print:border-gray-800">
                 <TableCell>Total Outflows (Schedule B)</TableCell>
-                <TableCell className="text-center font-mono tabular-nums">
+                <TableCell className="text-center font-sans tabular-nums">
                   {expenseCategories.reduce((acc, c) => acc + (c.count ?? 1), 0)}
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">100%</TableCell>
-                <TableCell className="text-right font-mono tabular-nums text-rose-700 dark:text-rose-400 print:text-gray-900 text-sm">
+                <TableCell className="text-right font-sans tabular-nums">100%</TableCell>
+                <TableCell className="text-right font-sans tabular-nums text-rose-700 dark:text-rose-400 print:text-gray-900 text-sm">
                   {formatCurrency(totalExpensePoisha)}
                 </TableCell>
               </TableRow>
@@ -284,7 +284,7 @@ export function SummaryView({
           </div>
           <div className="flex items-center gap-3">
             <span
-              className={`font-black text-base sm:text-lg font-mono tabular-nums ${
+              className={`font-black text-base sm:text-lg font-sans tabular-nums ${
                 isNetSurplus
                   ? "text-emerald-700 dark:text-emerald-400 print:text-gray-900"
                   : "text-rose-700 dark:text-rose-400 print:text-gray-900"
@@ -340,7 +340,7 @@ export function SummaryView({
                         <span className="font-semibold text-foreground truncate max-w-[220px]">
                           {item.categoryName || item.name || "General Donations"}
                         </span>
-                        <span className="font-bold text-foreground shrink-0 ml-2 font-mono tabular-nums">
+                        <span className="font-bold text-foreground shrink-0 ml-2 font-sans tabular-nums">
                           {formatCurrency(amountPoisha)}{" "}
                           <span className="font-normal text-muted-foreground text-[11px]">
                             ({pct}%)
@@ -414,7 +414,7 @@ export function SummaryView({
                         <span className="font-semibold text-foreground truncate max-w-[220px]">
                           {item.categoryName || item.name || "General Expense"}
                         </span>
-                        <span className="font-bold text-foreground shrink-0 ml-2 font-mono tabular-nums">
+                        <span className="font-bold text-foreground shrink-0 ml-2 font-sans tabular-nums">
                           {formatCurrency(amountPoisha)}{" "}
                           <span className="font-normal text-muted-foreground text-[11px]">
                             ({pct}%)

@@ -91,7 +91,7 @@ export function UpcomingEventsCard({
             >
               {/* Date Badge */}
               <div className="dt w-10.5 h-11.5 rounded-[10px] bg-[#F2F8F5] dark:bg-emerald-950/40 flex flex-col items-center justify-center text-[10px] text-[#2F4A42] dark:text-emerald-300 shrink-0 font-medium leading-none">
-                <span className="text-[16px] font-bold text-[#12332B] dark:text-emerald-100 font-mono mb-0.5">
+                <span className="text-[16px] font-bold text-[#12332B] dark:text-emerald-100 font-sans mb-0.5">
                   {evt.day}
                 </span>
                 <span>{evt.month}</span>

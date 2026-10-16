@@ -382,7 +382,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             )}
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
+            <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight font-sans tabular-nums">
               {formatCurrency(totalIncomeVal, { showDecimals: false })}
             </span>
           </div>
@@ -404,7 +404,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
             )}
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
+            <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight font-sans tabular-nums">
               {formatCurrency(totalExpenseVal, { showDecimals: false })}
             </span>
           </div>
@@ -447,7 +447,7 @@ export function ReportsPage({ mosqueId }: ReportsPageProps) {
           <div className="mt-3 flex items-baseline gap-2">
             <span
               className={cn(
-                "text-2xl sm:text-3xl font-extrabold tracking-tight font-mono tabular-nums",
+                "text-2xl sm:text-3xl font-extrabold tracking-tight font-sans tabular-nums",
                 isNetPositive
                   ? "text-emerald-700 dark:text-emerald-400"
                   : "text-rose-700 dark:text-rose-400"
