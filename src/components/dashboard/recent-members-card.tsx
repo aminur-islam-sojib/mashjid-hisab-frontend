@@ -34,7 +34,7 @@ export function RecentMembersCard({
   const displayList = members.slice(0, 4);
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-4 sm:p-[18px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-4 sm:p-4.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between pb-1">
         <h2 className="text-[13px] font-bold text-foreground tracking-tight m-0">
@@ -84,7 +84,7 @@ export function RecentMembersCard({
                   {/* Name & Avatar */}
                   <div className="flex items-center min-w-0 pr-1">
                     <span
-                      className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[11px] font-bold text-white mr-3 shrink-0"
+                      className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-[11px] font-bold text-white mr-3 shrink-0"
                       style={{ backgroundColor: avatarBg }}
                     >
                       {initials}

@@ -24,7 +24,7 @@ export function QuickActionsCard({
       title: "Add Member",
       icon: (
         <svg
-          className="w-[22px] h-[22px] fill-none stroke-current"
+          className="w-5.5 h-5.5 fill-none stroke-current"
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -41,7 +41,7 @@ export function QuickActionsCard({
       title: "Record Donation",
       icon: (
         <svg
-          className="w-[22px] h-[22px] fill-none stroke-current"
+          className="w-5.5 h-5.5 fill-none stroke-current"
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -57,7 +57,7 @@ export function QuickActionsCard({
       title: "Schedule Event",
       icon: (
         <svg
-          className="w-[22px] h-[22px] fill-none stroke-current"
+          className="w-5.5 h-5.5 fill-none stroke-current"
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -73,7 +73,7 @@ export function QuickActionsCard({
       title: "Add Staff",
       icon: (
         <svg
-          className="w-[22px] h-[22px] fill-none stroke-current"
+          className="w-5.5 h-5.5 fill-none stroke-current"
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -90,7 +90,7 @@ export function QuickActionsCard({
       title: "Manage Facility",
       icon: (
         <svg
-          className="w-[22px] h-[22px] fill-none stroke-current"
+          className="w-5.5 h-5.5 fill-none stroke-current"
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -106,7 +106,7 @@ export function QuickActionsCard({
       title: "Generate Report",
       icon: (
         <svg
-          className="w-[22px] h-[22px] fill-none stroke-current"
+          className="w-5.5 h-5.5 fill-none stroke-current"
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -123,7 +123,7 @@ export function QuickActionsCard({
   return (
     <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl shadow-[0_2px_10px_rgba(16,60,48,0.05)] overflow-hidden">
       {/* Dark Teal Gradient Header with Islamic Arch Watermark */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#0A5C47] to-[#0E7A5C] text-white p-[22px_20px_24px] flex items-center gap-3.5">
+      <div className="relative overflow-hidden bg-linear-to-r from-[#0A5C47] to-[#0E7A5C] text-white p-[22px_20px_24px] flex items-center gap-3.5">
         {/* Arch Watermark */}
         <div
           className="absolute right-0 top-0 bottom-0 w-28 opacity-15 pointer-events-none flex items-center justify-end"
