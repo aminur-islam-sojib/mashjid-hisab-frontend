@@ -41,7 +41,7 @@ export function WelcomeBanner({ name, mosqueName }: WelcomeBannerProps) {
   }, []);
 
   return (
-    <section className="cd relative h-auto min-h-37 box-border px-6 sm:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 bg-linear-to-r from-[#E9F5F0] to-[#DCEEE7] dark:from-[#0a241f] dark:to-[#0f332a] border border-[#DCEBE5] dark:border-border rounded-2xl overflow-hidden shadow-[0_2px_10px_rgba(16,60,48,0.05)]">
+    <section className="cd relative h-auto min-h-37 box-border px-6 sm:px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 bg-linear-to-r from-[#E9F5F0] to-[#DCEEE7] dark:from-[#0a241f] dark:to-[#0f332a] border border-[#DCEBE5] dark:border-border rounded-xl overflow-hidden shadow-[0_2px_10px_rgba(16,60,48,0.05)]">
       {/* Decorative Islamic Architectural Mosque Silhouette SVG */}
       <svg
         viewBox="0 0 300 148"

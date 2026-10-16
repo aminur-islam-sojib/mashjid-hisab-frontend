@@ -2,64 +2,80 @@
 
 import * as React from "react";
 import { Sunrise, Sun, Sunset, Moon, MapPin } from "lucide-react";
+import {
+  getDailyPrayerTimes,
+  DEFAULT_BANGLADESH_COORDS,
+  type ComputedPrayerTime,
+} from "@/lib/prayer-times";
 
 interface PrayerTimesCardProps {
   mosqueName?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
-interface PrayerTime {
-  name: string;
-  time: string;
-  status: "passed" | "now" | "upcoming";
-  icon: React.ComponentType<{ className?: string }>;
-}
+const PRAYER_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  fajr: Sunrise,
+  dhuhr: Sun,
+  asr: Sun,
+  maghrib: Sunset,
+  isha: Moon,
+};
 
-export function PrayerTimesCard({ mosqueName = "Al-Noor Mosque" }: PrayerTimesCardProps) {
-  // Compute prayer statuses relative to current time
-  const prayers: PrayerTime[] = React.useMemo(() => {
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+export function PrayerTimesCard({
+  mosqueName = "Al-Noor Mosque",
+  latitude,
+  longitude,
+}: PrayerTimesCardProps) {
+  // Current time state that ticks every minute to keep dynamic statuses up to date
+  const [now, setNow] = React.useState(() => new Date());
 
-    // Standard schedule times in minutes
-    // Fajr: 4:52 AM (292), Dhuhr: 12:21 PM (741), Asr: 3:45 PM (945), Maghrib: 6:02 PM (1082), Isha: 7:32 PM (1172)
-    const schedule = [
-      { name: "Fajr", time: "4:52 AM", minutes: 292, icon: Sunrise },
-      { name: "Dhuhr", time: "12:21 PM", minutes: 741, icon: Sun },
-      { name: "Asr", time: "3:45 PM", minutes: 945, icon: Sun },
-      { name: "Maghrib", time: "6:02 PM", minutes: 1082, icon: Sunset },
-      { name: "Isha", time: "7:32 PM", minutes: 1172, icon: Moon },
-    ];
-
-    // Determine current prayer window
-    let activeIdx = -1;
-    for (let i = schedule.length - 1; i >= 0; i--) {
-      if (currentMinutes >= schedule[i].minutes) {
-        activeIdx = i;
-        break;
-      }
-    }
-    if (activeIdx === -1) {
-      activeIdx = 4; // Before Fajr is night (Isha)
-    }
-
-    return schedule.map((p, idx) => {
-      let status: "passed" | "now" | "upcoming" = "upcoming";
-      if (idx === activeIdx) {
-        status = "now";
-      } else if (idx < activeIdx) {
-        status = "passed";
-      }
-      return {
-        name: p.name,
-        time: p.time,
-        status,
-        icon: p.icon,
-      };
-    });
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
   }, []);
 
+  // Coordinates state: defaults to Dhaka, Bangladesh, with optional browser geolocation refinement
+  const [coords, setCoords] = React.useState(() => {
+    if (latitude !== undefined && longitude !== undefined) {
+      return { latitude, longitude, name: mosqueName };
+    }
+    return DEFAULT_BANGLADESH_COORDS;
+  });
+
+  React.useEffect(() => {
+    if (latitude !== undefined && longitude !== undefined) {
+      setCoords({ latitude, longitude, name: mosqueName });
+      return;
+    }
+
+    // Try detecting client division coordinates if permitted
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            name: mosqueName,
+          });
+        },
+        () => {
+          // Fallback to Dhaka defaults
+        },
+        { timeout: 6000 }
+      );
+    }
+  }, [latitude, longitude, mosqueName]);
+
+  // Compute live high-precision prayer times
+  const prayerSchedule = React.useMemo(() => {
+    return getDailyPrayerTimes(now, coords);
+  }, [now, coords]);
+
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 h-auto lg:h-78.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 h-auto lg:h-[314px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -71,36 +87,34 @@ export function PrayerTimesCard({ mosqueName = "Al-Noor Mosque" }: PrayerTimesCa
             <span>{mosqueName}</span>
           </div>
         </div>
-        <span className="h-6.5 px-4 rounded-lg bg-[#DDF1E9] dark:bg-emerald-950/70 text-[#0B6B52] dark:text-emerald-300 text-xs font-semibold flex items-center justify-center">
+        <span className="h-6.5 px-4 rounded-xl bg-[#DDF1E9] dark:bg-emerald-950/70 text-[#0B6B52] dark:text-emerald-300 text-xs font-semibold flex items-center justify-center">
           Today
         </span>
       </div>
 
       {/* 5-Column Prayer Tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mt-3.5">
-        {prayers.map((prayer) => {
-          const Icon = prayer.icon;
+        {prayerSchedule.prayers.map((prayer: ComputedPrayerTime) => {
+          const Icon = PRAYER_ICONS[prayer.key] || Sun;
           const isNow = prayer.status === "now";
           const isPassed = prayer.status === "passed";
 
           return (
             <div
               key={prayer.name}
-              className={`pt flex flex-col items-center gap-1 py-3 px-2 rounded-xl text-[13px] text-[#2F4A42] dark:text-emerald-100 transition-all ${
-                isNow
-                  ? "bg-[#DDF1E9] dark:bg-emerald-950/80 border border-emerald-500/30 font-semibold shadow-xs"
-                  : "bg-[#F4F8F6] dark:bg-muted/40 border border-transparent"
-              }`}
+              className={`pt flex flex-col items-center gap-1 py-3 px-2 rounded-xl text-[13px] text-[#2F4A42] dark:text-emerald-100 transition-all ${isNow
+                ? "bg-[#DDF1E9] dark:bg-emerald-950/80 border border-emerald-500/30 font-semibold shadow-xs"
+                : "bg-[#F4F8F6] dark:bg-muted/40 border border-transparent"
+                }`}
             >
               <Icon
-                className={`w-4.5 h-4.5 ${
-                  isNow
-                    ? "text-[#0B8A63] dark:text-emerald-400"
-                    : "text-[#5E766E] dark:text-muted-foreground"
-                }`}
+                className={`w-4.5 h-4.5 ${isNow
+                  ? "text-[#0B8A63] dark:text-emerald-400"
+                  : "text-[#5E766E] dark:text-muted-foreground"
+                  }`}
               />
               <span className="text-xs font-medium">{prayer.name}</span>
-              <b className="text-[14px] text-[#12332B] dark:text-white font-bold">
+              <b className="text-[14px] text-[#12332B] dark:text-white font-bold font-mono">
                 {prayer.time}
               </b>
 
@@ -140,4 +154,3 @@ export function PrayerTimesCard({ mosqueName = "Al-Noor Mosque" }: PrayerTimesCa
     </div>
   );
 }
-
