@@ -19,7 +19,6 @@ import { useClosePeriod } from "./hooks/use-close-period";
 import { useReopenPeriod } from "./hooks/use-reopen-period";
 import { ReportsHeader } from "./components/reports-header";
 import { OfficialLetterhead } from "./components/official-letterhead";
-import { ReportSignatories } from "./components/report-signatories";
 import { SummaryView } from "./components/summary-view";
 import { BalancesView } from "./components/balances-view";
 import { DonorsView } from "./components/donors-view";
