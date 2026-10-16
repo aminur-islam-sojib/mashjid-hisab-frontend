@@ -30,6 +30,11 @@ export interface MosqueBasic {
   timezone?: string;
   fiscalYearStart?: number;
   isTransparencyPageEnabled?: boolean;
+  isArchived?: boolean;
+  archivedAt?: string | null;
+  archiveRequested?: boolean;
+  archiveRequestedAt?: string | null;
+  archiveRequestReason?: string | null;
 }
 
 export interface UserMembership {

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { LogIn, ArrowRight, Loader2 } from "lucide-react";
+import { LogIn, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { MosqueLogo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ export function LoginForm() {
   const redirectUrl = searchParams.get("redirect");
   const { login } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [accountError, setAccountError] = React.useState<{ title: string; message: string } | null>(null);
 
   const {
     register,
@@ -37,6 +38,7 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
+    setAccountError(null);
     try {
       const result = await login(data.identifier, data.password);
       toast.success("Welcome back!", {
@@ -57,6 +59,12 @@ export function LoginForm() {
       }
     } catch (err) {
       if (err instanceof ApiError) {
+        if (err.code === "ACCOUNT_INACTIVE" || err.code === "ACCOUNT_BLOCKED") {
+          setAccountError({
+            title: err.code === "ACCOUNT_BLOCKED" ? "Account Blocked" : "Account Suspended / Inactive",
+            message: err.message,
+          });
+        }
         if (err.details && Array.isArray(err.details)) {
           err.details.forEach((issue) => {
             if (issue.field === "identifier" || issue.field === "password") {
@@ -93,6 +101,17 @@ export function LoginForm() {
             Enter your email or phone number to access your account.
           </p>
         </div>
+
+        {/* Account Status Alert Banner */}
+        {accountError && (
+          <div className="mb-6 p-4 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed">
+              <p className="font-semibold text-sm">{accountError.title}</p>
+              <p className="mt-1 opacity-90">{accountError.message}</p>
+            </div>
+          </div>
+        )}
 
         {/* Login Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
