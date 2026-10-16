@@ -59,7 +59,7 @@ export function PrayerTimesCard({ mosqueName = "Al-Noor Mosque" }: PrayerTimesCa
   }, []);
 
   return (
-    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 h-auto lg:h-[314px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 h-auto lg:h-78.5 box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -71,7 +71,7 @@ export function PrayerTimesCard({ mosqueName = "Al-Noor Mosque" }: PrayerTimesCa
             <span>{mosqueName}</span>
           </div>
         </div>
-        <span className="h-[26px] px-4 rounded-lg bg-[#DDF1E9] dark:bg-emerald-950/70 text-[#0B6B52] dark:text-emerald-300 text-xs font-semibold flex items-center justify-center">
+        <span className="h-6.5 px-4 rounded-lg bg-[#DDF1E9] dark:bg-emerald-950/70 text-[#0B6B52] dark:text-emerald-300 text-xs font-semibold flex items-center justify-center">
           Today
         </span>
       </div>
@@ -123,7 +123,7 @@ export function PrayerTimesCard({ mosqueName = "Al-Noor Mosque" }: PrayerTimesCa
       </div>
 
       {/* Quranic Verse Banner */}
-      <div className="mt-2.5 h-[98px] rounded-xl bg-gradient-to-r from-[#CFE7DD] via-[#E6F3EE] to-[#D4EADF] dark:from-[#0d2a23] dark:via-[#13362e] dark:to-[#0f2d26] border border-[#DCEBE5] dark:border-border/50 text-center pt-2.5 px-3 box-border overflow-hidden relative flex flex-col justify-center">
+      <div className="mt-2.5 h-24.5 rounded-xl bg-linear-to-r from-[#CFE7DD] via-[#E6F3EE] to-[#D4EADF] dark:from-[#0d2a23] dark:via-[#13362e] dark:to-[#0f2d26] border border-[#DCEBE5] dark:border-border/50 text-center pt-2.5 px-3 box-border overflow-hidden relative flex flex-col justify-center">
         <div
           dir="rtl"
           className="text-lg sm:text-[19px] font-bold text-[#0B3F32] dark:text-emerald-200 leading-tight"

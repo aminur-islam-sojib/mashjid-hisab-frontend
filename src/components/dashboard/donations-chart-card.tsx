@@ -190,7 +190,7 @@ export function DonationsChartCard({
       <div className="w-full mt-1.5 flex-1 flex items-end">
         <svg
           viewBox="0 0 360 150"
-          className="w-full h-[155px]"
+          className="w-full h-20.75"
           role="img"
           aria-label="Monthly donations trend"
         >

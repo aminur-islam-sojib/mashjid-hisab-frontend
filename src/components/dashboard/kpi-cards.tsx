@@ -53,10 +53,10 @@ export function KpiCards({
   return (
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
       {/* 1. Total Members */}
-      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
         <div className="flex items-center gap-3.5">
-          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Users className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Users className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="text-xs text-foreground font-medium truncate">Total Members</div>
@@ -72,10 +72,10 @@ export function KpiCards({
       </div>
 
       {/* 2. Total Donations */}
-      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
         <div className="flex items-center gap-3.5">
-          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Heart className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Heart className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="text-xs text-foreground font-medium truncate">Total Donations</div>
@@ -91,10 +91,10 @@ export function KpiCards({
       </div>
 
       {/* 3. Upcoming Events */}
-      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
         <div className="flex items-center gap-3.5">
-          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <CalendarCheck className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <CalendarCheck className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-foreground font-medium truncate">Upcoming Events</div>
@@ -117,10 +117,10 @@ export function KpiCards({
       </div>
 
       {/* 4. Total Facilities / Funds & Accounts */}
-      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
         <div className="flex items-center gap-3.5">
-          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <Building className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Building className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-foreground font-medium truncate">Total Facilities</div>
