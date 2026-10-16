@@ -6,16 +6,12 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   Coins,
-  TrendingDown,
-  ArrowLeftRight,
   Receipt,
-  FileText,
   Landmark,
   PiggyBank,
   ArrowRight,
   Loader2,
   AlertCircle,
-  Plus,
 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
@@ -23,6 +19,13 @@ import { useMosque } from "@/providers/mosque-provider";
 import { OVERSIGHT_ROLES } from "@/lib/roles";
 import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
+import { PrayerTimesCard } from "@/components/dashboard/prayer-times-card";
+import { DonationsChartCard } from "@/components/dashboard/donations-chart-card";
+import { RecentMembersCard } from "@/components/dashboard/recent-members-card";
+import { FacilityUsageCard } from "@/components/dashboard/facility-usage-card";
+import { QuickStatsCard } from "@/components/dashboard/quick-stats-card";
+import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
+import { UpcomingEventsCard } from "@/components/dashboard/upcoming-events-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AllocateDialog } from "@/features/funds/components/allocate-dialog";
@@ -44,9 +47,82 @@ interface DashboardFundItem {
   formattedBalance?: string;
 }
 
+interface DashboardMemberItem {
+  id: string;
+  name: string;
+  email: string;
+  joinedAt: string;
+  status: string;
+  role: string;
+}
+
+interface DashboardDonationPoint {
+  day: number;
+  label: string;
+  date: string;
+  amount: string;
+  formattedAmount: string;
+}
+
+interface DashboardFundAllocationItem {
+  id: string;
+  name: string;
+  type: string;
+  isRestricted: boolean;
+  balance: string;
+  formattedBalance: string;
+  percentage: number;
+}
+
+interface DashboardCampaignItem {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string | null;
+  targetAmount: string | null;
+  formattedTargetAmount: string | null;
+  raisedAmount: string;
+  formattedRaisedAmount: string;
+}
+
+interface DashboardQuickStats {
+  boxCollectionsCount: number;
+  boxCollectionsTotal: string;
+  formattedBoxCollectionsTotal: string;
+  activeDonorsCount: number;
+  activeStaffCount: number;
+  activeCampaignsCount: number;
+}
+
 interface DashboardReportData {
   asOf: string;
   currentPeriod: string;
+  kpi?: {
+    totalMembers: number;
+    membersTrendPercentage: number;
+    monthlyIncome: string;
+    formattedMonthlyIncome: string;
+    incomeTrendPercentage: number;
+    upcomingEventsCount: number;
+    totalFacilitiesCount: number;
+  };
+  donationsTrend?: {
+    currentMonthIncome: string;
+    formattedCurrentMonthIncome: string;
+    lastMonthIncome: string;
+    formattedLastMonthIncome: string;
+    trendPercentage: number;
+    dataPoints: DashboardDonationPoint[];
+  };
+  recentMembers?: DashboardMemberItem[];
+  fundAllocation?: {
+    totalBalance: string;
+    formattedTotalBalance: string;
+    overallAllocationPercentage: number;
+    funds: DashboardFundAllocationItem[];
+  };
+  upcomingEvents?: DashboardCampaignItem[];
+  quickStats?: DashboardQuickStats;
   balances?: {
     totalAccounts: string;
     formattedTotalAccounts?: string;
@@ -115,37 +191,37 @@ export default function MosqueDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Welcome Greeting Banner */}
-      <WelcomeBanner mosqueName={activeMosque?.name} />
-
-      {/* 2. Loading / Error / KPI Section */}
+      {/* Non-oversight view (Community Member portal) */}
       {!isOversight ? (
-        <Card className="p-8 text-center space-y-4 max-w-xl mx-auto">
-          <div className="w-12 h-12 bg-secondary text-primary rounded-full flex items-center justify-center mx-auto">
-            <Coins className="w-6 h-6" />
-          </div>
-          <h2 className="text-lg font-bold text-foreground">Welcome to {activeMosque?.name || "the Mosque"}</h2>
-          <p className="text-xs text-muted-foreground">
-            You are signed in as a community member. View your contribution history, active pledges, and public financial transparency.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <Link href={`/mosques/${mosqueId}/me`}>
-              <Button size="sm">My Giving Portal</Button>
-            </Link>
-            <Link href={`/mosques/${mosqueId}/donations`}>
-              <Button variant="outline" size="sm">Make a Donation</Button>
-            </Link>
-            {activeMosque?.slug && (
-              <Link href={`/m/${activeMosque.slug}`}>
-                <Button variant="outline" size="sm">Public Transparency</Button>
+        <div className="space-y-6">
+          <WelcomeBanner mosqueName={activeMosque?.name} />
+          <Card className="p-8 text-center space-y-4 max-w-xl mx-auto">
+            <div className="w-12 h-12 bg-secondary text-primary rounded-full flex items-center justify-center mx-auto">
+              <Coins className="w-6 h-6" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">Welcome to {activeMosque?.name || "the Mosque"}</h2>
+            <p className="text-xs text-muted-foreground">
+              You are signed in as a community member. View your contribution history, active pledges, and public financial transparency.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <Link href={`/mosques/${mosqueId}/me`}>
+                <Button size="sm">My Giving Portal</Button>
               </Link>
-            )}
-          </div>
-        </Card>
+              <Link href={`/mosques/${mosqueId}/donations`}>
+                <Button variant="outline" size="sm">Make a Donation</Button>
+              </Link>
+              {activeMosque?.slug && (
+                <Link href={`/m/${activeMosque.slug}`}>
+                  <Button variant="outline" size="sm">Public Transparency</Button>
+                </Link>
+              )}
+            </div>
+          </Card>
+        </div>
       ) : isLoading ? (
-        <div className="py-12 flex flex-col items-center justify-center space-y-3">
+        <div className="py-16 flex flex-col items-center justify-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-xs text-muted-foreground font-medium">Aggregating treasury data...</p>
+          <p className="text-xs text-muted-foreground font-medium">Aggregating mosque dashboard data...</p>
         </div>
       ) : isError ? (
         <Card className="p-6 border-destructive/20 bg-destructive/5 text-center space-y-3">
@@ -157,132 +233,126 @@ export default function MosqueDashboardPage() {
         </Card>
       ) : (
         <>
-          {/* Executive KPI Cards */}
-          <KpiCards
-            totalBalance={dashboardData?.balances?.totalAccounts || "0"}
-            monthlyIncome={dashboardData?.thisMonth?.income || "0"}
-            monthlyExpense={dashboardData?.thisMonth?.expense || "0"}
-            pendingCount={dashboardData?.pendingApprovals?.totalPending || 0}
-            pendingAmount={dashboardData?.pendingApprovals?.totalPendingAmount || "0"}
-            mosqueId={mosqueId}
-          />
+          {/* Main Dashboard Layout: Left Content Column + Right Aside Column */}
+          <div className="flex flex-col xl:flex-row items-start gap-5">
+            {/* Main Column */}
+            <div className="flex-1 w-full min-w-0 flex flex-col gap-4">
+              {/* 1. Welcome Greeting Banner */}
+              <WelcomeBanner mosqueName={activeMosque?.name} />
 
-          {/* Attention Strip: Pending Items */}
-          {((dashboardData?.pendingApprovals?.totalPending || 0) > 0 ||
-            (dashboardData?.pendingApprovals?.countingSessionsToVerify || 0) > 0) && (
-            <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-xl p-4 space-y-3 shadow-xs">
-              {/* Item 1: Pending Transactions (Donations + Expenses) */}
-              {(dashboardData?.pendingApprovals?.totalPending || 0) > 0 && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                      <AlertCircle className="w-4.5 h-4.5" />
+              {/* 2. 4-Card Executive KPI Grid (Connected to Live Database Data) */}
+              <KpiCards
+                totalMembers={dashboardData?.kpi?.totalMembers ?? 0}
+                memberTrendPercentage={dashboardData?.kpi?.membersTrendPercentage ?? 0}
+                monthlyIncome={dashboardData?.kpi?.monthlyIncome ?? dashboardData?.thisMonth?.income ?? "0"}
+                incomeTrendPercentage={dashboardData?.kpi?.incomeTrendPercentage ?? 0}
+                upcomingEventsCount={dashboardData?.kpi?.upcomingEventsCount ?? 0}
+                totalFacilitiesCount={dashboardData?.kpi?.totalFacilitiesCount ?? (dashboardData?.balances?.accounts?.length ?? 0) + (dashboardData?.balances?.funds?.length ?? 0)}
+                mosqueId={mosqueId}
+              />
+
+              {/* Attention Strip: Pending Approvals & Box Count Sessions */}
+              {((dashboardData?.pendingApprovals?.totalPending || 0) > 0 ||
+                (dashboardData?.pendingApprovals?.countingSessionsToVerify || 0) > 0) && (
+                <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-xl p-4 space-y-3 shadow-xs">
+                  {/* Item 1: Pending Transactions */}
+                  {(dashboardData?.pendingApprovals?.totalPending || 0) > 0 && (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                          <AlertCircle className="w-4.5 h-4.5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
+                            {dashboardData?.pendingApprovals?.totalPending} Transaction{dashboardData?.pendingApprovals?.totalPending === 1 ? "" : "s"} Awaiting Approval
+                          </h4>
+                          <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                            {dashboardData?.pendingApprovals?.pendingDonations || 0} donation{(dashboardData?.pendingApprovals?.pendingDonations || 0) === 1 ? "" : "s"}, {dashboardData?.pendingApprovals?.pendingExpenses || 0} expense{(dashboardData?.pendingApprovals?.pendingExpenses || 0) === 1 ? "" : "s"}
+                            {dashboardData?.pendingApprovals?.totalPendingAmount && dashboardData.pendingApprovals.totalPendingAmount !== "0" ? ` totaling ${formatCurrency(dashboardData.pendingApprovals.totalPendingAmount)}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <Link
+                        href={`/mosques/${mosqueId}/transactions?tab=pending`}
+                        className="shrink-0 self-end sm:self-center"
+                      >
+                        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs h-8">
+                          Review Pending Queue
+                          <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                        </Button>
+                      </Link>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
-                        {dashboardData?.pendingApprovals?.totalPending} Transaction{dashboardData?.pendingApprovals?.totalPending === 1 ? "" : "s"} Awaiting Approval
-                      </h4>
-                      <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
-                        {dashboardData?.pendingApprovals?.pendingDonations || 0} donation{(dashboardData?.pendingApprovals?.pendingDonations || 0) === 1 ? "" : "s"}, {dashboardData?.pendingApprovals?.pendingExpenses || 0} expense{(dashboardData?.pendingApprovals?.pendingExpenses || 0) === 1 ? "" : "s"}
-                        {dashboardData?.pendingApprovals?.totalPendingAmount && dashboardData.pendingApprovals.totalPendingAmount !== "0" ? ` totaling ${formatCurrency(dashboardData.pendingApprovals.totalPendingAmount)}` : ""}
-                      </p>
+                  )}
+
+                  {/* Item 2: Box Counting Sessions to Verify */}
+                  {(dashboardData?.pendingApprovals?.countingSessionsToVerify || 0) > 0 && (
+                    <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${(dashboardData?.pendingApprovals?.totalPending || 0) > 0 ? "pt-3 border-t border-amber-200/60 dark:border-amber-800/60" : ""}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                          <Receipt className="w-4.5 h-4.5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
+                            {dashboardData?.pendingApprovals?.countingSessionsToVerify} Box Count{dashboardData?.pendingApprovals?.countingSessionsToVerify === 1 ? "" : "s"} to Verify
+                          </h4>
+                          <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                            Counting session{dashboardData?.pendingApprovals?.countingSessionsToVerify === 1 ? "" : "s"} awaiting verification before posting to ledger.
+                          </p>
+                        </div>
+                      </div>
+                      <Link
+                        href={`/mosques/${mosqueId}/collections`}
+                        className="shrink-0 self-end sm:self-center"
+                      >
+                        <Button size="sm" variant="outline" className="border-teal-600 text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:border-teal-400 text-xs h-8">
+                          Verify Box Counts
+                          <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                        </Button>
+                      </Link>
                     </div>
-                  </div>
-                  <Link
-                    href={`/mosques/${mosqueId}/transactions?tab=pending`}
-                    className="shrink-0 self-end sm:self-center"
-                  >
-                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs h-8">
-                      Review Pending Queue
-                      <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                    </Button>
-                  </Link>
+                  )}
                 </div>
               )}
 
-              {/* Item 2: Box Counting Sessions to Verify */}
-              {(dashboardData?.pendingApprovals?.countingSessionsToVerify || 0) > 0 && (
-                <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${(dashboardData?.pendingApprovals?.totalPending || 0) > 0 ? "pt-3 border-t border-amber-200/60 dark:border-amber-800/60" : ""}`}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
-                      <Receipt className="w-4.5 h-4.5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-amber-950 dark:text-amber-100">
-                        {dashboardData?.pendingApprovals?.countingSessionsToVerify} Box Count{dashboardData?.pendingApprovals?.countingSessionsToVerify === 1 ? "" : "s"} to Verify
-                      </h4>
-                      <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
-                        Counting session{dashboardData?.pendingApprovals?.countingSessionsToVerify === 1 ? "" : "s"} awaiting verification before posting to ledger.
-                      </p>
-                    </div>
-                  </div>
-                  <Link
-                    href={`/mosques/${mosqueId}/collections`}
-                    className="shrink-0 self-end sm:self-center"
-                  >
-                    <Button size="sm" variant="outline" className="border-teal-600 text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:border-teal-400 text-xs h-8">
-                      Verify Box Counts
-                      <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
+              {/* 3. Row of 2 Cards: Prayer Times + Live Monthly Donations Curve */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-3.5">
+                <PrayerTimesCard mosqueName={activeMosque?.name} />
+                <DonationsChartCard
+                  monthlyIncome={dashboardData?.donationsTrend?.currentMonthIncome ?? dashboardData?.thisMonth?.income ?? "0"}
+                  lastMonthIncome={dashboardData?.donationsTrend?.lastMonthIncome ?? "0"}
+                  trendPercentage={dashboardData?.donationsTrend?.trendPercentage ?? 0}
+                  dataPoints={dashboardData?.donationsTrend?.dataPoints ?? []}
+                />
+              </div>
+
+              {/* 4. Row of 3 Cards: Live Recent Members + Fund Allocation + Operational Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.1fr_1fr_0.75fr] gap-3">
+                <RecentMembersCard
+                  members={dashboardData?.recentMembers ?? []}
+                  mosqueId={mosqueId}
+                />
+                <FacilityUsageCard
+                  fundAllocation={dashboardData?.fundAllocation}
+                  mosqueId={mosqueId}
+                />
+                <QuickStatsCard
+                  stats={dashboardData?.quickStats}
+                />
+              </div>
             </div>
-          )}
 
-          {/* Quick Actions Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Link href={`/mosques/${mosqueId}/donations`}>
-              <Card className="p-4 hover:border-primary/40 transition-all hover:bg-secondary/20 flex items-center gap-3 cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-secondary text-primary flex items-center justify-center shrink-0">
-                  <Coins className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Record Donation</p>
-                  <p className="text-[10px] text-muted-foreground truncate">Income ledger</p>
-                </div>
-              </Card>
-            </Link>
-
-            <Link href={`/mosques/${mosqueId}/expenses`}>
-              <Card className="p-4 hover:border-primary/40 transition-all hover:bg-secondary/20 flex items-center gap-3 cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-secondary text-primary flex items-center justify-center shrink-0">
-                  <TrendingDown className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Record Expense</p>
-                  <p className="text-[10px] text-muted-foreground truncate">Disbursements</p>
-                </div>
-              </Card>
-            </Link>
-
-            <Link href={`/mosques/${mosqueId}/transfers`}>
-              <Card className="p-4 hover:border-primary/40 transition-all hover:bg-secondary/20 flex items-center gap-3 cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-secondary text-primary flex items-center justify-center shrink-0">
-                  <ArrowLeftRight className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Transfer Funds</p>
-                  <p className="text-[10px] text-muted-foreground truncate">Bank & accounts</p>
-                </div>
-              </Card>
-            </Link>
-
-            <Link href={`/mosques/${mosqueId}/collections`}>
-              <Card className="p-4 hover:border-primary/40 transition-all hover:bg-secondary/20 flex items-center gap-3 cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-secondary text-primary flex items-center justify-center shrink-0">
-                  <Receipt className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">Box Counting</p>
-                  <p className="text-[10px] text-muted-foreground truncate">Jummah collection</p>
-                </div>
-              </Card>
-            </Link>
+            {/* Right Aside Column: Quick Actions + Live Upcoming Events */}
+            <aside className="w-full xl:w-[283px] shrink-0 flex flex-col gap-4">
+              <QuickActionsCard mosqueId={mosqueId} />
+              <UpcomingEventsCard
+                events={dashboardData?.upcomingEvents ?? []}
+                mosqueId={mosqueId}
+              />
+            </aside>
           </div>
 
-          {/* Treasury Overview Grid: Accounts & Funds */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 5. Treasury Balance Sheet: Physical Accounts & Accounting Funds */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
             {/* Accounts Balance Summary */}
             <Card className="p-6">
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
@@ -415,4 +485,3 @@ export default function MosqueDashboardPage() {
     </div>
   );
 }
-

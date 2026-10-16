@@ -1,136 +1,145 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUpRight, MoreVertical } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { UserPlus, Users } from "lucide-react";
 
 export interface MemberItem {
   id: string;
   name: string;
   email: string;
-  joined: string;
-  status: "Active" | "Pending" | "Inactive";
+  joinedAt?: string;
+  joined?: string;
+  status: string;
+  role?: string;
+  color?: string;
 }
 
-const defaultMembers: MemberItem[] = [
-  {
-    id: "1",
-    name: "Abdullah Rahman",
-    email: "abdullah@gmail.com",
-    joined: "Jan 12, 2025",
-    status: "Active",
-  },
-  {
-    id: "2",
-    name: "Fatima Akter",
-    email: "fatima@gmail.com",
-    joined: "Jan 10, 2025",
-    status: "Active",
-  },
-  {
-    id: "3",
-    name: "Mohammad Hasan",
-    email: "hasan@gmail.com",
-    joined: "Jan 8, 2025",
-    status: "Active",
-  },
-];
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return "M";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
 
-export function RecentMembersCard({ members = defaultMembers }: { members?: MemberItem[] }) {
-  const [activeMenu, setActiveMenu] = React.useState<string | null>(null);
+const AVATAR_COLORS = ["#6B4F3A", "#9A6A5C", "#4F6B5F", "#0B6B52", "#3E7BD6"];
+
+export function RecentMembersCard({
+  members = [],
+  mosqueId,
+}: {
+  members?: MemberItem[];
+  mosqueId?: string;
+}) {
+  const displayList = members.slice(0, 4);
 
   return (
-    <Card className="p-5 sm:p-6 flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-4 sm:p-[18px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-border/60">
-        <h3 className="text-base sm:text-lg font-semibold font-heading text-foreground">
+      <div className="flex items-center justify-between pb-1">
+        <h2 className="text-[13px] font-bold text-foreground tracking-tight m-0">
           Recent Members
-        </h3>
-        <a
-          href="#members"
-          className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 hover:underline"
+        </h2>
+        <Link
+          href={mosqueId ? `/mosques/${mosqueId}/people` : "#"}
+          className="text-[11px] text-[#5E766E] dark:text-muted-foreground hover:text-primary transition-colors font-medium"
         >
-          View all
-          <ArrowUpRight className="w-3.5 h-3.5" />
-        </a>
+          View all →
+        </Link>
       </div>
 
-      {/* Table Header */}
-      <div className="mt-3 overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="text-[11px] font-semibold text-muted-foreground uppercase border-b border-border/40">
-              <th className="pb-2 font-medium">Name</th>
-              <th className="pb-2 font-medium hidden sm:table-cell">Joined</th>
-              <th className="pb-2 font-medium">Status</th>
-              <th className="pb-2 font-medium text-right sr-only">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/40 text-xs">
-            {members.map((member) => (
-              <tr key={member.id} className="group hover:bg-muted/40 transition-colors">
-                {/* Member Info & Avatar */}
-                <td className="py-3 pr-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-secondary dark:bg-[#123b33] border border-primary/20 flex items-center justify-center font-bold text-xs text-primary shrink-0">
-                      {member.name.charAt(0)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                        {member.name}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground truncate">
-                        {member.email}
-                      </p>
-                    </div>
+      {/* Table Rows or Empty State */}
+      <div className="mt-2.5 flex-1 flex flex-col justify-center">
+        {displayList.length > 0 ? (
+          <div>
+            {/* Table Head */}
+            <div className="grid grid-cols-[1.5fr_1fr_0.8fr_20px] items-center py-2 text-[11px] font-semibold text-[#5E766E] dark:text-muted-foreground">
+              <span>Name</span>
+              <span>Joined</span>
+              <span>Status</span>
+              <span />
+            </div>
+
+            {/* Member Items */}
+            {displayList.map((m, idx) => {
+              const initials = getInitials(m.name);
+              const avatarBg = m.color || AVATAR_COLORS[idx % AVATAR_COLORS.length];
+              const joinedFormatted = m.joined
+                ? m.joined
+                : m.joinedAt
+                ? new Date(m.joinedAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "Recent";
+
+              const isActive = m.status?.toUpperCase() === "ACTIVE";
+
+              return (
+                <div
+                  key={m.id || idx}
+                  className="grid grid-cols-[1.5fr_1fr_0.8fr_20px] items-center py-2.5 border-t border-[#EDF2F0] dark:border-border/60 text-[11px] text-[#5E766E] dark:text-muted-foreground"
+                >
+                  {/* Name & Avatar */}
+                  <div className="flex items-center min-w-0 pr-1">
+                    <span
+                      className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[11px] font-bold text-white mr-3 shrink-0"
+                      style={{ backgroundColor: avatarBg }}
+                    >
+                      {initials}
+                    </span>
+                    <span className="text-[#12332B] dark:text-foreground font-semibold leading-tight truncate">
+                      {m.name}
+                      <span className="block font-normal text-[10px] text-[#5E766E] dark:text-muted-foreground truncate">
+                        {m.email || m.role?.toLowerCase() || "Member"}
+                      </span>
+                    </span>
                   </div>
-                </td>
 
-                {/* Joined Date */}
-                <td className="py-3 px-2 text-muted-foreground hidden sm:table-cell whitespace-nowrap">
-                  {member.joined}
-                </td>
+                  {/* Joined Date */}
+                  <span className="whitespace-nowrap">{joinedFormatted}</span>
 
-                {/* Status Badge */}
-                <td className="py-3 px-2">
-                  <Badge variant="success" className="text-[10px] font-medium px-2 py-0.5">
-                    {member.status}
-                  </Badge>
-                </td>
-
-                {/* Menu */}
-                <td className="py-3 pl-2 text-right relative">
-                  <button
-                    onClick={() =>
-                      setActiveMenu(activeMenu === member.id ? null : member.id)
-                    }
-                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    aria-label="Member options"
+                  {/* Status Badge */}
+                  <span
+                    className={`rounded-[6px] px-2.5 py-0.5 text-[10px] font-semibold justify-self-start ${
+                      isActive
+                        ? "bg-[#DDF1E9] dark:bg-emerald-950/70 text-[#0B8A63] dark:text-emerald-400"
+                        : "bg-muted text-muted-foreground"
+                    }`}
                   >
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
+                    {m.status || "Active"}
+                  </span>
 
-                  {activeMenu === member.id && (
-                    <div className="absolute right-0 mt-1 w-32 bg-card border border-border rounded-xl shadow-lg py-1 z-30 text-xs text-left">
-                      <button className="w-full px-3 py-1.5 hover:bg-muted text-foreground transition-colors">
-                        View Profile
-                      </button>
-                      <button className="w-full px-3 py-1.5 hover:bg-muted text-foreground transition-colors">
-                        Edit Member
-                      </button>
-                      <button className="w-full px-3 py-1.5 hover:bg-destructive/10 text-destructive transition-colors">
-                        Deactivate
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  {/* Action Menu */}
+                  <Link
+                    href={mosqueId ? `/mosques/${mosqueId}/people` : "#"}
+                    className="text-[#5E766E] dark:text-muted-foreground hover:text-primary transition-colors text-center font-bold"
+                  >
+                    ⋮
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-6 text-center space-y-2">
+            <div className="w-9 h-9 rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center mx-auto">
+              <Users className="w-4 h-4" />
+            </div>
+            <p className="text-xs font-semibold text-foreground">No members yet</p>
+            <p className="text-[10px] text-muted-foreground">Add community members to track pledges and giving.</p>
+            {mosqueId && (
+              <Link href={`/mosques/${mosqueId}/people`}>
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline mt-1">
+                  <UserPlus className="w-3 h-3" />
+                  Add Member
+                </span>
+              </Link>
+            )}
+          </div>
+        )}
       </div>
-    </Card>
+    </div>
   );
 }
-

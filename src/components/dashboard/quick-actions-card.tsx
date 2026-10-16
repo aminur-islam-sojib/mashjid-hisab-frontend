@@ -1,70 +1,132 @@
 "use client";
 
 import * as React from "react";
-import {
-  UserPlus,
-  HeartHandshake,
-  CalendarPlus,
-  Users2,
-  Building,
-  FileSpreadsheet,
-} from "lucide-react";
-import { Card } from "@/components/ui/card";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-interface QuickActionsProps {
-  onAddMember: () => void;
-  onRecordDonation: () => void;
-  onScheduleEvent: () => void;
+interface QuickActionsCardProps {
+  mosqueId?: string;
+  onAddMember?: () => void;
+  onRecordDonation?: () => void;
+  onScheduleEvent?: () => void;
   onActionToast?: (title: string) => void;
 }
 
 export function QuickActionsCard({
+  mosqueId,
   onAddMember,
   onRecordDonation,
   onScheduleEvent,
   onActionToast,
-}: QuickActionsProps) {
+}: QuickActionsCardProps) {
   const actions = [
     {
       title: "Add Member",
-      icon: UserPlus,
+      icon: (
+        <svg
+          className="w-[22px] h-[22px] fill-none stroke-current"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <circle cx="9" cy="8" r="3" />
+          <path d="M3 20a6 6 0 0112 0M18 8v6M15 11h6" />
+        </svg>
+      ),
+      href: mosqueId ? `/mosques/${mosqueId}/people` : "#",
       onClick: onAddMember,
     },
     {
       title: "Record Donation",
-      icon: HeartHandshake,
+      icon: (
+        <svg
+          className="w-[22px] h-[22px] fill-none stroke-current"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 20s-7-5-7-9a4 4 0 017-2 4 4 0 017 2c0 4-7 9-7 9z" />
+        </svg>
+      ),
+      href: mosqueId ? `/mosques/${mosqueId}/donations` : "#",
       onClick: onRecordDonation,
     },
     {
       title: "Schedule Event",
-      icon: CalendarPlus,
+      icon: (
+        <svg
+          className="w-[22px] h-[22px] fill-none stroke-current"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4" />
+        </svg>
+      ),
+      href: mosqueId ? `/mosques/${mosqueId}/campaigns` : "#",
       onClick: onScheduleEvent,
     },
     {
       title: "Add Staff",
-      icon: Users2,
-      onClick: () => onActionToast?.("Staff recruitment modal opened"),
+      icon: (
+        <svg
+          className="w-[22px] h-[22px] fill-none stroke-current"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M5 21a7 7 0 0114 0z" />
+        </svg>
+      ),
+      href: mosqueId ? `/mosques/${mosqueId}/people?role=STAFF` : "#",
+      onClick: () => onActionToast?.("Staff recruitment management"),
     },
     {
       title: "Manage Facility",
-      icon: Building,
-      onClick: () => onActionToast?.("Navigating to Facility reservation manager"),
+      icon: (
+        <svg
+          className="w-[22px] h-[22px] fill-none stroke-current"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M3 8l9-5 9 5v1H3zM5 9v10M19 9v10M10 9v10M14 9v10M3 20h18" />
+        </svg>
+      ),
+      href: mosqueId ? `/mosques/${mosqueId}/accounts` : "#",
+      onClick: () => onActionToast?.("Mosque facility management"),
     },
     {
       title: "Generate Report",
-      icon: FileSpreadsheet,
-      onClick: () => onActionToast?.("Compiling Monthly Financial & Attendance PDF Report"),
+      icon: (
+        <svg
+          className="w-[22px] h-[22px] fill-none stroke-current"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 3h9l4 4v14H6zM9 12h7M9 16h7" />
+        </svg>
+      ),
+      href: mosqueId ? `/mosques/${mosqueId}/reports` : "#",
+      onClick: () => onActionToast?.("Compiling Financial Report"),
     },
   ];
 
   return (
-    <Card className="overflow-hidden p-0 border-border">
-      {/* Dark Teal Header with Islamic Arch Motif */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#004f45] to-[#003932] dark:from-[#08201b] dark:to-[#041411] text-white p-5 sm:p-6 pb-6">
-        {/* Subtle geometric Islamic arch watermark */}
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl shadow-[0_2px_10px_rgba(16,60,48,0.05)] overflow-hidden">
+      {/* Dark Teal Gradient Header with Islamic Arch Watermark */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#0A5C47] to-[#0E7A5C] text-white p-[22px_20px_24px] flex items-center gap-3.5">
+        {/* Arch Watermark */}
         <div
-          className="absolute right-0 top-0 bottom-0 w-32 opacity-15 pointer-events-none flex items-center justify-end"
+          className="absolute right-0 top-0 bottom-0 w-28 opacity-15 pointer-events-none flex items-center justify-end"
           aria-hidden="true"
         >
           <svg viewBox="0 0 100 120" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
@@ -73,60 +135,68 @@ export function QuickActionsCard({
           </svg>
         </div>
 
-        <div className="relative z-10 flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center shrink-0">
-            {/* Mihrab / Mosque symbol */}
-            <svg
-              className="w-5 h-5 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 22h16" />
-              <path d="M6 22V10a6 6 0 0 1 12 0v12" />
-              <path d="M12 4v4" />
-            </svg>
+        {/* Mosque Icon */}
+        <div className="w-8 h-8 flex items-center justify-center shrink-0">
+          <svg
+            className="w-8 h-8 text-white fill-none stroke-current"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+          >
+            <path d="M5 21v-9a7 7 0 0114 0v9M12 2v3M9 21v-5h6v5" />
+          </svg>
+        </div>
+
+        {/* Header Text */}
+        <div className="relative z-10">
+          <div className="font-serif text-[18px] font-semibold leading-tight text-white">
+            Quick Actions
           </div>
-          <div>
-            <h3 className="text-base sm:text-lg font-bold font-heading text-white tracking-tight">
-              Quick Actions
-            </h3>
-            <p className="text-xs text-white/80 mt-0.5">
-              Manage your mosque activities
-            </p>
+          <div className="text-[11px] text-[#CDE8DF] mt-1 font-normal">
+            Manage your mosque activities
           </div>
         </div>
       </div>
 
-      {/* 2-Column Grid of 6 Action Buttons */}
-      <div className="p-4 sm:p-5 bg-card">
-        <div className="grid grid-cols-2 gap-3">
-          {actions.map((act) => {
-            const Icon = act.icon;
+      {/* 2-Column Grid of 6 Quick Action Tiles */}
+      <div className="grid grid-cols-2 gap-2.5 p-[18px_20px_20px] bg-card">
+        {actions.map((act) => {
+          const itemClasses = cn(
+            "qa h-20 rounded-xl bg-[#F2F8F5] dark:bg-emerald-950/40 text-[#12332B] dark:text-emerald-100",
+            "flex flex-col items-center justify-center gap-2.5 text-xs font-medium cursor-pointer",
+            "border border-transparent hover:border-[#D0E5DC] dark:hover:border-emerald-800",
+            "hover:bg-[#E1F2EB] dark:hover:bg-emerald-900/60 hover:text-[#0B5F49] dark:hover:text-emerald-300",
+            "transition-all active:scale-[0.98]"
+          );
+
+          if (act.onClick && !act.href) {
             return (
               <button
                 key={act.title}
+                type="button"
                 onClick={act.onClick}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-xl border border-border/80 transition-all text-center group cursor-pointer",
-                  "bg-muted/30 hover:bg-secondary/70 hover:border-primary/40 hover:shadow-xs active:scale-[0.98]"
-                )}
+                className={itemClasses}
               >
-                <div className="w-9 h-9 rounded-lg bg-card text-primary flex items-center justify-center shadow-2xs group-hover:bg-primary group-hover:text-primary-foreground transition-all mb-2.5">
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {act.title}
-                </span>
+                {act.icon}
+                <span>{act.title}</span>
               </button>
             );
-          })}
-        </div>
+          }
+
+          return (
+            <Link
+              key={act.title}
+              href={act.href}
+              onClick={act.onClick}
+              className={itemClasses}
+            >
+              {act.icon}
+              <span>{act.title}</span>
+            </Link>
+          );
+        })}
       </div>
-    </Card>
+    </div>
   );
 }
-

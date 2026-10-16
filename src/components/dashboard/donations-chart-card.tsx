@@ -1,141 +1,173 @@
 "use client";
 
 import * as React from "react";
-import { TrendingUp, ChevronDown } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/money";
 
-interface ChartPoint {
+export interface DonationDataPoint {
+  day: number;
+  label: string;
   date: string;
-  amount: number;
+  amount: string; // poisha
+  formattedAmount?: string;
 }
 
-const dataByPeriod: Record<string, { total: string; trend: string; points: ChartPoint[] }> = {
-  "This Month": {
-    total: "$8,450",
-    trend: "+18%",
-    points: [
-      { date: "Oct 1", amount: 650 },
-      { date: "Oct 5", amount: 1200 },
-      { date: "Oct 8", amount: 1100 },
-      { date: "Oct 12", amount: 1850 },
-      { date: "Oct 15", amount: 1600 },
-      { date: "Oct 18", amount: 2400 },
-      { date: "Oct 22", amount: 2100 },
-      { date: "Oct 26", amount: 2650 },
-      { date: "Oct 31", amount: 2950 },
-    ],
-  },
-  "Last Month": {
-    total: "$7,160",
-    trend: "+9%",
-    points: [
-      { date: "Sep 1", amount: 450 },
-      { date: "Sep 5", amount: 900 },
-      { date: "Sep 8", amount: 1300 },
-      { date: "Sep 12", amount: 1400 },
-      { date: "Sep 15", amount: 1750 },
-      { date: "Sep 18", amount: 1900 },
-      { date: "Sep 22", amount: 2000 },
-      { date: "Sep 26", amount: 2300 },
-      { date: "Sep 30", amount: 2450 },
-    ],
-  },
-  "This Year": {
-    total: "$89,320",
-    trend: "+24%",
-    points: [
-      { date: "Jan", amount: 1200 },
-      { date: "Mar", amount: 1600 },
-      { date: "May", amount: 2800 },
-      { date: "Jul", amount: 2200 },
-      { date: "Sep", amount: 2400 },
-      { date: "Oct", amount: 2950 },
-    ],
-  },
-};
+interface DonationsChartCardProps {
+  monthlyIncome?: string | bigint;
+  lastMonthIncome?: string | bigint;
+  trendPercentage?: number;
+  dataPoints?: DonationDataPoint[];
+}
 
-export function DonationsChartCard() {
-  const [period, setPeriod] = React.useState<"This Month" | "Last Month" | "This Year">("This Month");
-  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
-  const [hoveredPoint, setHoveredPoint] = React.useState<ChartPoint | null>(null);
+function formatCompactK(poishaVal: bigint): string {
+  if (poishaVal === 0n) return "৳0";
+  const taka = Number(poishaVal) / 100;
+  if (taka >= 1000) {
+    const k = taka / 1000;
+    return `৳${k >= 10 ? Math.round(k) : k.toFixed(1)}k`;
+  }
+  return `৳${Math.round(taka)}`;
+}
 
-  const currentData = dataByPeriod[period];
-  const maxAmount = 3000;
-  const width = 500;
-  const height = 160;
-  const paddingX = 20;
-  const paddingY = 20;
+export function DonationsChartCard({
+  monthlyIncome = "0",
+  lastMonthIncome = "0",
+  trendPercentage = 0,
+  dataPoints = [],
+}: DonationsChartCardProps) {
+  const [period, setPeriod] = React.useState<"This Month" | "Last Month">("This Month");
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
 
-  // Generate SVG smooth curve path
-  const points = currentData.points.map((p, idx) => {
-    const x =
-      paddingX +
-      (idx / (currentData.points.length - 1)) * (width - paddingX * 2);
-    const y =
-      height -
-      paddingY -
-      (p.amount / maxAmount) * (height - paddingY * 2);
-    return { x, y, data: p };
-  });
-
-  // Catmull-Rom or smooth cubic bezier curve
-  const createSmoothPath = (pts: { x: number; y: number }[]) => {
-    if (pts.length === 0) return "";
-    let d = `M ${pts[0].x} ${pts[0].y}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i === 0 ? 0 : i - 1];
-      const p1 = pts[i];
-      const p2 = pts[i + 1];
-      const p3 = pts[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+  React.useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
     }
-    return d;
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const currentAmount = period === "This Month" ? monthlyIncome : lastMonthIncome;
+  const formattedAmount = React.useMemo(() => {
+    return formatCurrency(currentAmount || "0", { showDecimals: false });
+  }, [currentAmount]);
+
+  // Dynamic Chart Plot Calculations
+  const chartGeometry = React.useMemo(() => {
+    const defaultPoints: DonationDataPoint[] = [
+      { day: 1, label: "Day 1", date: "", amount: "0" },
+      { day: 8, label: "Day 8", date: "", amount: "0" },
+      { day: 15, label: "Day 15", date: "", amount: "0" },
+      { day: 22, label: "Day 22", date: "", amount: "0" },
+      { day: 31, label: "Day 31", date: "", amount: "0" },
+    ];
+
+    const pts = dataPoints && dataPoints.length >= 2 ? dataPoints : defaultPoints;
+
+    const amounts = pts.map((p) => BigInt(p.amount || "0"));
+    const maxVal = amounts.reduce((max, val) => (val > max ? val : max), 0n);
+    const effectiveMax = maxVal > 0n ? maxVal : 100000n; // fallback scale ৳1,000
+
+    const xStart = 32;
+    const xEnd = 336;
+    const yBaseline = 121;
+    const yTop = 14;
+
+    const coords = pts.map((p, idx) => {
+      const x = xStart + (idx / (pts.length - 1)) * (xEnd - xStart);
+      const val = BigInt(p.amount || "0");
+      const ratio = Number(val) / Number(effectiveMax);
+      const y = yBaseline - ratio * (yBaseline - yTop);
+      return { x, y, label: p.label };
+    });
+
+    // Generate smooth SVG curve using Catmull-Rom or Bezier segments
+    let strokePath = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const curr = coords[i];
+      const next = coords[i + 1];
+      const mx = (curr.x + next.x) / 2;
+      strokePath += ` C ${mx.toFixed(1)} ${curr.y.toFixed(1)}, ${mx.toFixed(1)} ${next.y.toFixed(1)}, ${next.x.toFixed(1)} ${next.y.toFixed(1)}`;
+    }
+
+    const fillPath = `${strokePath} L ${coords[coords.length - 1].x.toFixed(1)} ${yBaseline} L ${coords[0].x.toFixed(1)} ${yBaseline} Z`;
+
+    const lastCoord = coords[coords.length - 1];
+
+    // Compute Y-Axis scales
+    const yLabels = [
+      { text: formatCompactK(effectiveMax), y: 12 },
+      { text: formatCompactK((effectiveMax * 2n) / 3n), y: 48 },
+      { text: formatCompactK(effectiveMax / 3n), y: 86 },
+      { text: "৳0", y: 124 },
+    ];
+
+    return {
+      coords,
+      strokePath,
+      fillPath,
+      lastCoord,
+      yLabels,
+    };
+  }, [dataPoints]);
+
+  const renderTrend = (pct: number) => {
+    if (pct > 0) {
+      return (
+        <span className="text-[12px] font-semibold text-[#0B8A63] align-middle font-sans">
+          ▲ +{pct}%
+        </span>
+      );
+    }
+    if (pct < 0) {
+      return (
+        <span className="text-[12px] font-semibold text-rose-600 align-middle font-sans">
+          ▼ {pct}%
+        </span>
+      );
+    }
+    return (
+      <span className="text-[12px] font-medium text-[#5E766E] dark:text-muted-foreground align-middle font-sans">
+        — 0%
+      </span>
+    );
   };
 
-  const linePath = createSmoothPath(points);
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${
-    height - paddingY
-  } L ${points[0].x} ${height - paddingY} Z`;
-
-  const lastPoint = points[points.length - 1];
-
   return (
-    <Card className="p-5 sm:p-6 flex flex-col justify-between">
-      {/* Header & Period Dropdown */}
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 h-auto lg:h-[314px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold font-heading text-foreground">
-            Monthly Donations
-          </h3>
-        </div>
+        <h2 className="text-[15px] font-bold text-foreground tracking-tight m-0">
+          Monthly Donations
+        </h2>
 
-        <div className="relative">
+        {/* Period Selector */}
+        <div className="relative" ref={menuRef}>
           <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-foreground bg-secondary/80 hover:bg-secondary rounded-lg border border-border/80 transition-colors"
+            type="button"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="border border-[#DCE7E3] dark:border-border rounded-[7px] px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted/50 transition-colors flex items-center gap-1 cursor-pointer"
           >
-            {period}
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            <span>{period}</span>
+            <span className="text-[10px] text-[#5E766E] dark:text-muted-foreground">⌄</span>
           </button>
 
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-1.5 w-32 bg-card border border-border rounded-xl shadow-md py-1 z-20 text-xs">
-              {(["This Month", "Last Month", "This Year"] as const).map((opt) => (
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-lg py-1 z-30 text-xs">
+              {(["This Month", "Last Month"] as const).map((p) => (
                 <button
-                  key={opt}
+                  key={p}
+                  type="button"
                   onClick={() => {
-                    setPeriod(opt);
-                    setIsDropdownOpen(false);
+                    setPeriod(p);
+                    setIsMenuOpen(false);
                   }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-muted text-foreground transition-colors"
+                  className={`w-full text-left px-3 py-1.5 hover:bg-muted font-medium transition-colors cursor-pointer ${
+                    period === p ? "text-primary font-bold bg-muted/40" : "text-foreground"
+                  }`}
                 >
-                  {opt}
+                  {p}
                 </button>
               ))}
             </div>
@@ -143,130 +175,90 @@ export function DonationsChartCard() {
         </div>
       </div>
 
-      {/* Top Value & Comparison */}
-      <div className="mt-3">
-        <div className="flex items-baseline gap-2.5">
-          <span className="text-2xl sm:text-3xl font-bold font-heading text-foreground">
-            {currentData.total}
-          </span>
-          <span className="inline-flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-            <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
-            {currentData.trend}
-          </span>
+      {/* Main Metric */}
+      <div className="mt-2.5">
+        <div className="text-[26px] font-bold text-foreground leading-tight font-mono tabular-nums">
+          {formattedAmount}{" "}
+          {renderTrend(trendPercentage)}
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Compared to last month
-        </p>
+        <div className="text-xs text-[#5E766E] dark:text-muted-foreground mt-1 font-medium">
+          Compared to previous period
+        </div>
       </div>
 
-      {/* Responsive Smooth SVG Line / Area Chart */}
-      <div className="relative mt-4 w-full h-44">
-        {/* Y-axis Labels */}
-        <div className="absolute left-0 inset-y-0 flex flex-col justify-between text-[11px] text-muted-foreground font-mono select-none pointer-events-none pb-6">
-          <span>$3k</span>
-          <span>$2k</span>
-          <span>$1k</span>
-          <span>$0</span>
-        </div>
+      {/* Area Chart Vector Canvas */}
+      <div className="w-full mt-1.5 flex-1 flex items-end">
+        <svg
+          viewBox="0 0 360 150"
+          className="w-full h-[155px]"
+          role="img"
+          aria-label="Monthly donations trend"
+        >
+          <defs>
+            <linearGradient id="donationsGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#0B8A63" stopOpacity="0.35" />
+              <stop offset="1" stopColor="#0B8A63" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
 
-        {/* SVG Drawing */}
-        <div className="pl-7 w-full h-full">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            preserveAspectRatio="none"
-            className="w-full h-full overflow-visible"
-          >
-            <defs>
-              <linearGradient id="donationGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0E9F86" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#0E9F86" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-
-            {/* Horizontal Grid lines */}
-            {[0, 1, 2, 3].map((idx) => {
-              const y = paddingY + (idx / 3) * (height - paddingY * 2);
-              return (
-                <line
-                  key={idx}
-                  x1={paddingX}
-                  y1={y}
-                  x2={width - paddingX}
-                  y2={y}
-                  stroke="currentColor"
-                  strokeOpacity="0.08"
-                  strokeDasharray="4 4"
-                />
-              );
-            })}
-
-            {/* Area Fill */}
-            <path d={areaPath} fill="url(#donationGradient)" />
-
-            {/* Smooth Curve Line */}
-            <path
-              d={linePath}
-              fill="none"
-              stroke="#008F78"
-              strokeWidth="2.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            {/* Last active point marker */}
-            {lastPoint && (
-              <g>
-                <circle
-                  cx={lastPoint.x}
-                  cy={lastPoint.y}
-                  r="5"
-                  fill="#006B5B"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                />
-                <circle
-                  cx={lastPoint.x}
-                  cy={lastPoint.y}
-                  r="8"
-                  fill="#008F78"
-                  opacity="0.25"
-                />
-              </g>
-            )}
-
-            {/* Interactive hover points */}
-            {points.map((pt, idx) => (
-              <circle
-                key={idx}
-                cx={pt.x}
-                cy={pt.y}
-                r="7"
-                fill="transparent"
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredPoint(pt.data)}
-                onMouseLeave={() => setHoveredPoint(null)}
-              />
+          {/* Y-Axis Value Labels */}
+          <g fontSize="9" fill="#5E766E" className="font-mono">
+            {chartGeometry.yLabels.map((lbl) => (
+              <text key={lbl.y} x="0" y={lbl.y}>
+                {lbl.text}
+              </text>
             ))}
-          </svg>
-        </div>
 
-        {/* X-axis Date Labels */}
-        <div className="pl-7 flex items-center justify-between text-[11px] text-muted-foreground select-none mt-1">
-          {currentData.points
-            .filter((_, idx, arr) => idx === 0 || idx === Math.floor(arr.length / 2) || idx === arr.length - 1)
-            .map((p) => (
-              <span key={p.date}>{p.date}</span>
+            {/* X-Axis Milestone Date Labels */}
+            {chartGeometry.coords.map((c) => (
+              <text
+                key={c.x}
+                x={c.x}
+                y="146"
+                textAnchor="middle"
+                className="text-[9px]"
+              >
+                {c.label}
+              </text>
             ))}
-        </div>
+          </g>
 
-        {/* Hover Tooltip */}
-        {hoveredPoint && (
-          <div className="absolute top-1 right-2 bg-foreground text-background text-[11px] px-2 py-1 rounded shadow-md pointer-events-none">
-            {hoveredPoint.date}: ${hoveredPoint.amount}
-          </div>
-        )}
+          {/* Grid lines */}
+          <g stroke="#EAF1EE" className="dark:stroke-border/40">
+            <line x1="28" x2="360" y1="7" y2="7" />
+            <line x1="28" x2="360" y1="45" y2="45" />
+            <line x1="28" x2="360" y1="83" y2="83" />
+            <line x1="28" x2="360" y1="121" y2="121" />
+          </g>
+
+          {/* Area Fill */}
+          <path d={chartGeometry.fillPath} fill="url(#donationsGradient)" />
+
+          {/* Area Stroke */}
+          <path
+            d={chartGeometry.strokePath}
+            fill="none"
+            stroke="#0B8A63"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+
+          {/* Active Highlight Dot on latest milestone */}
+          <circle
+            cx={chartGeometry.lastCoord.x}
+            cy={chartGeometry.lastCoord.y}
+            r="4"
+            fill="#0B8A63"
+          />
+          <circle
+            cx={chartGeometry.lastCoord.x}
+            cy={chartGeometry.lastCoord.y}
+            r="7"
+            fill="#0B8A63"
+            fillOpacity="0.2"
+          />
+        </svg>
       </div>
-    </Card>
+    </div>
   );
 }
-

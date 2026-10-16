@@ -1,79 +1,73 @@
 "use client";
 
 import * as React from "react";
-import { Users, Landmark, BookOpen, HandHeart, TrendingUp } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/money";
 
-export function QuickStatsCard() {
-  const stats = [
+export interface QuickStatsData {
+  boxCollectionsCount?: number;
+  boxCollectionsTotal?: string;
+  formattedBoxCollectionsTotal?: string;
+  activeDonorsCount?: number;
+  activeStaffCount?: number;
+  activeCampaignsCount?: number;
+}
+
+interface QuickStatsCardProps {
+  stats?: QuickStatsData;
+}
+
+export function QuickStatsCard({ stats }: QuickStatsCardProps) {
+  const collectionTotal = stats?.boxCollectionsTotal
+    ? formatCurrency(stats.boxCollectionsTotal, { showDecimals: false })
+    : "৳0";
+
+  const statItems = [
     {
-      title: "Jummah Attendees",
-      value: "320",
-      change: "+12%",
-      icon: Users,
+      title: "Box Collections",
+      val: stats?.boxCollectionsCount !== undefined ? String(stats.boxCollectionsCount) : "0",
+      subtext: stats?.boxCollectionsTotal && stats.boxCollectionsTotal !== "0" ? collectionTotal : "All time",
     },
     {
-      title: "Daily Prayers",
-      value: "1,240",
-      change: "+8%",
-      icon: Landmark,
+      title: "Active Donors",
+      val: stats?.activeDonorsCount !== undefined ? String(stats.activeDonorsCount) : "0",
+      subtext: "This month",
     },
     {
-      title: "Quran Classes",
-      value: "48",
-      change: "+15%",
-      icon: BookOpen,
+      title: "Active Campaigns",
+      val: stats?.activeCampaignsCount !== undefined ? String(stats.activeCampaignsCount) : "0",
+      subtext: "Fundraising",
     },
     {
-      title: "Active Volunteers",
-      value: "22",
-      change: "+10%",
-      icon: HandHeart,
+      title: "Mosque Staff",
+      val: stats?.activeStaffCount !== undefined ? String(stats.activeStaffCount) : "0",
+      subtext: "Oversight team",
     },
   ];
 
   return (
-    <Card className="p-5 sm:p-6 flex flex-col justify-between">
+    <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-4 sm:p-[18px] box-border shadow-[0_2px_10px_rgba(16,60,48,0.05)] flex flex-col justify-between">
       {/* Header */}
-      <div className="pb-3 border-b border-border/60">
-        <h3 className="text-base sm:text-lg font-semibold font-heading text-foreground">
-          Quick Stats
-        </h3>
+      <h2 className="text-[13px] font-bold text-foreground tracking-tight m-0 pb-1">
+        Quick Stats
+      </h2>
+
+      {/* 2x2 Grid of Stat Boxes */}
+      <div className="grid grid-cols-2 gap-2.5 mt-3.5">
+        {statItems.map((s) => (
+          <div
+            key={s.title}
+            className="qs border border-[#E4ECE9] dark:border-border/80 rounded-xl p-2.5 flex flex-col gap-1 text-[10px] text-[#5E766E] dark:text-muted-foreground bg-[#F6FAF8]/50 dark:bg-muted/10 hover:border-primary/40 transition-colors"
+          >
+            <span className="truncate font-medium">{s.title}</span>
+            <strong className="text-lg sm:text-[19px] font-bold text-[#12332B] dark:text-foreground font-mono leading-tight">
+              {s.val}
+            </strong>
+            <span className="text-[10px] font-medium text-[#0B8A63] dark:text-emerald-400 truncate">
+              {s.subtext}
+            </span>
+          </div>
+        ))}
       </div>
-
-      {/* 2x2 Grid */}
-      <div className="grid grid-cols-2 gap-3 mt-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={stat.title}
-              className="p-3.5 rounded-xl border border-border/80 bg-muted/20 dark:bg-muted/10 hover:border-primary/30 transition-all group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-7 h-7 rounded-lg bg-secondary text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-              </div>
-
-              <p className="text-[11px] font-medium text-muted-foreground truncate">
-                {stat.title}
-              </p>
-
-              <div className="flex items-baseline justify-between gap-1 mt-1">
-                <span className="text-lg sm:text-xl font-bold font-heading text-foreground">
-                  {stat.value}
-                </span>
-                <span className="inline-flex items-center text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                  <TrendingUp className="w-2.5 h-2.5 mr-0.5" />
-                  {stat.change}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </Card>
+    </div>
   );
 }
-

@@ -2,132 +2,145 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Landmark, TrendingUp, TrendingDown, Clock, ArrowRight } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Users, Heart, CalendarCheck, Building } from "lucide-react";
 import { formatCurrency } from "@/lib/money";
 
 export interface DashboardKpiProps {
-  totalBalance?: string | bigint;
+  totalMembers?: number;
+  memberTrendPercentage?: number;
   monthlyIncome?: string | bigint;
-  monthlyExpense?: string | bigint;
-  pendingCount?: number;
-  pendingAmount?: string | bigint;
+  incomeTrendPercentage?: number;
+  upcomingEventsCount?: number;
+  totalFacilitiesCount?: number;
   mosqueId?: string;
 }
 
 export function KpiCards({
-  totalBalance = "0",
+  totalMembers = 0,
+  memberTrendPercentage = 0,
   monthlyIncome = "0",
-  monthlyExpense = "0",
-  pendingCount = 0,
-  pendingAmount = "0",
+  incomeTrendPercentage = 0,
+  upcomingEventsCount = 0,
+  totalFacilitiesCount = 0,
   mosqueId,
 }: DashboardKpiProps) {
+  const formattedIncome = React.useMemo(() => {
+    return formatCurrency(monthlyIncome || "0", { showDecimals: false });
+  }, [monthlyIncome]);
+
+  const renderTrend = (pct: number) => {
+    if (pct > 0) {
+      return (
+        <span className="text-[11px] font-semibold text-[#0B8A63] align-middle font-sans">
+          ▲ +{pct}%
+        </span>
+      );
+    }
+    if (pct < 0) {
+      return (
+        <span className="text-[11px] font-semibold text-rose-600 align-middle font-sans">
+          ▼ {pct}%
+        </span>
+      );
+    }
+    return (
+      <span className="text-[11px] font-medium text-[#5E766E] dark:text-muted-foreground align-middle font-sans">
+        — 0%
+      </span>
+    );
+  };
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
-      {/* 1. Total Treasury Balance */}
-      <Card className="p-5 lg:p-6 hover:border-primary/30 transition-all group">
+    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+      {/* 1. Total Members */}
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-full bg-secondary text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Landmark className="w-5 h-5" />
+          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Users className="w-7 h-7" />
           </div>
           <div className="min-w-0">
-            <span className="text-xs font-medium text-muted-foreground truncate block">
-              Total Treasury Balance
-            </span>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-xl sm:text-2xl font-bold font-heading text-foreground truncate">
-                {formatCurrency(totalBalance)}
-              </span>
+            <div className="text-xs text-foreground font-medium truncate">Total Members</div>
+            <div className="text-[26px] font-bold text-foreground leading-tight mt-0.5">
+              {totalMembers.toLocaleString()}{" "}
+              {renderTrend(memberTrendPercentage)}
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/60">
-          Combined cash & bank accounts
-        </p>
-      </Card>
+        <div className="text-[11px] text-[#5E766E] dark:text-muted-foreground mt-3 truncate">
+          Active members in the community
+        </div>
+      </div>
 
-      {/* 2. Monthly Income */}
-      <Card className="p-5 lg:p-6 hover:border-emerald-500/30 transition-all group">
+      {/* 2. Total Donations */}
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <TrendingUp className="w-5 h-5" />
+          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Heart className="w-7 h-7" />
           </div>
           <div className="min-w-0">
-            <span className="text-xs font-medium text-muted-foreground truncate block">
-              This Month&apos;s Income
-            </span>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-xl sm:text-2xl font-bold font-heading text-emerald-600 dark:text-emerald-400 truncate">
-                {formatCurrency(monthlyIncome)}
-              </span>
+            <div className="text-xs text-foreground font-medium truncate">Total Donations</div>
+            <div className="text-[26px] font-bold text-foreground leading-tight mt-0.5 font-mono tabular-nums">
+              {formattedIncome}{" "}
+              {renderTrend(incomeTrendPercentage)}
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/60">
-          Donations & box collections
-        </p>
-      </Card>
+        <div className="text-[11px] text-[#5E766E] dark:text-muted-foreground mt-3 truncate">
+          This month&apos;s collection
+        </div>
+      </div>
 
-      {/* 3. Monthly Expense */}
-      <Card className="p-5 lg:p-6 hover:border-rose-500/30 transition-all group">
+      {/* 3. Upcoming Events */}
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <TrendingDown className="w-5 h-5" />
+          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <CalendarCheck className="w-7 h-7" />
           </div>
-          <div className="min-w-0">
-            <span className="text-xs font-medium text-muted-foreground truncate block">
-              This Month&apos;s Spending
-            </span>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-xl sm:text-2xl font-bold font-heading text-foreground truncate">
-                {formatCurrency(monthlyExpense)}
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-foreground font-medium truncate">Upcoming Events</div>
+            <div className="flex items-baseline justify-between gap-1 mt-0.5">
+              <span className="text-[26px] font-bold text-foreground leading-tight">
+                {upcomingEventsCount}
               </span>
+              <Link
+                href={mosqueId ? `/mosques/${mosqueId}/campaigns` : "#"}
+                className="text-[11px] text-[#5E766E] dark:text-muted-foreground hover:text-primary transition-colors"
+              >
+                View all →
+              </Link>
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/60">
-          Disbursements & maintenance
-        </p>
-      </Card>
+        <div className="text-[11px] text-[#5E766E] dark:text-muted-foreground mt-3 truncate">
+          Programs and activities
+        </div>
+      </div>
 
-      {/* 4. Pending Approvals Queue */}
-      <Card className="p-5 lg:p-6 hover:border-amber-500/30 transition-all group">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-medium text-muted-foreground truncate block">
-                Pending Approvals
+      {/* 4. Total Facilities / Funds & Accounts */}
+      <div className="cd bg-card border border-[#E4ECE9] dark:border-border rounded-2xl p-5 pb-4 min-w-0 shadow-[0_2px_10px_rgba(16,60,48,0.05)] hover:border-primary/40 transition-all flex flex-col justify-between h-[140px]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-[58px] h-[58px] rounded-full bg-[#E1F2EB] dark:bg-emerald-950/60 text-[#0B6B52] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Building className="w-7 h-7" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-foreground font-medium truncate">Total Facilities</div>
+            <div className="flex items-baseline justify-between gap-1 mt-0.5">
+              <span className="text-[26px] font-bold text-foreground leading-tight">
+                {totalFacilitiesCount}
               </span>
-              <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="text-xl sm:text-2xl font-bold font-heading text-foreground">
-                  {pendingCount}
-                </span>
-                {pendingAmount && pendingAmount !== "0" && pendingAmount !== BigInt(0) ? (
-                  <span className="text-xs text-muted-foreground truncate">
-                    ({formatCurrency(pendingAmount)})
-                  </span>
-                ) : null}
-              </div>
+              <Link
+                href={mosqueId ? `/mosques/${mosqueId}/accounts` : "#"}
+                className="text-[11px] text-[#5E766E] dark:text-muted-foreground hover:text-primary transition-colors"
+              >
+                All facilities →
+              </Link>
             </div>
           </div>
-          {mosqueId && (
-            <Link
-              href={`/mosques/${mosqueId}/transactions?tab=pending`}
-              className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 self-center hover:underline shrink-0 pl-1"
-            >
-              Review
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          )}
         </div>
-        <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/60">
-          Dual-control approval queue
-        </p>
-      </Card>
-    </div>
+        <div className="text-[11px] text-[#5E766E] dark:text-muted-foreground mt-3 truncate">
+          Mosque, wudu, classrooms etc.
+        </div>
+      </div>
+    </section>
   );
 }
