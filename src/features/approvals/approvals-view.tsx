@@ -1,38 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  CheckSquare,
-  CheckCircle2,
-  XCircle,
-  Eye,
-  ShieldAlert,
-  Search,
-  RotateCcw,
-  Clock,
-  Coins,
-  TrendingDown,
-  TrendingUp,
-  FileCheck,
-  History,
-  Check,
-  Wallet,
-  Download,
-  SlidersHorizontal,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  ChevronDown,
-  User as UserIcon,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/table";
 import { apiClient } from "@/lib/api-client";
-import { formatCurrency } from "@/lib/money";
 import { useAuth } from "@/providers/auth-provider";
 import { useMosque } from "@/providers/mosque-provider";
 import { FINANCIAL_OPERATOR_ROLES } from "@/lib/roles";
@@ -49,29 +22,19 @@ import {
 } from "@/features/collections/types";
 import { toast } from "sonner";
 
-interface DelayedCommitItem {
-  txId: string;
-  secondsRemaining: number;
-  timerId: NodeJS.Timeout;
-  intervalId: NodeJS.Timeout;
-}
-
-export interface UnifiedApprovalRow {
-  id: string;
-  sourceType: "TRANSACTION" | "COLLECTION";
-  transactionType: "DONATION" | "EXPENSE" | "TRANSFER" | "INCOME" | "COLLECTION";
-  title: string;
-  subtitle?: string;
-  amount: string; // poisha string
-  fundName: string;
-  accountName: string;
-  categoryName?: string;
-  createdByName: string;
-  createdById?: string | null;
-  date: string;
-  rawTransaction?: UnifiedTransactionItem;
-  rawCollection?: CollectionSession;
-}
+import {
+  ApprovalTypeFilter,
+  ApprovalStatusFilter,
+  ApprovalSortOption,
+  DelayedCommitItem,
+  UnifiedApprovalRow,
+  ApprovalKpis,
+} from "./types";
+import { ApprovalsHeader } from "./components/approvals-header";
+import { ApprovalsKpiCards } from "./components/approvals-kpi-cards";
+import { ApprovalsDelayedBanner } from "./components/approvals-delayed-banner";
+import { ApprovalsToolbar } from "./components/approvals-toolbar";
+import { ApprovalsTable } from "./components/approvals-table";
 
 export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
   const router = useRouter();
@@ -87,9 +50,9 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
   const [typeFilter, setTypeFilter] = React.useState<string>("ALL");
   const [ownerFilter, setOwnerFilter] = React.useState<string>("ALL");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
-  const [sortBy, setSortBy] = React.useState<"LATEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC">("LATEST");
+  const [sortBy, setSortBy] = React.useState<ApprovalSortOption>("LATEST");
 
-  // Pagination State (matching reference layout)
+  // Pagination State
   const [currentPage, setCurrentPage] = React.useState(1);
   const itemsPerPage = 8;
 
@@ -328,8 +291,8 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
     return rows;
   }, [openCollections, pendingItems]);
 
-  // Aggregate Metrics for Top 4 KPI Cards (Matching Reference Layout)
-  const kpis = React.useMemo(() => {
+  // Aggregate Metrics for Top 4 KPI Cards
+  const kpis: ApprovalKpis = React.useMemo(() => {
     let totalPoisha = 0n;
     let donationPoisha = 0n;
     let expensePoisha = 0n;
@@ -372,21 +335,17 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
   // Filtered & Sorted Rows
   const filteredAndSortedRows = React.useMemo(() => {
     let list = allRows.filter((row) => {
-      // Type Filter
       if (typeFilter !== "ALL" && row.transactionType !== typeFilter) {
         return false;
       }
-      // Owner Filter
       if (ownerFilter !== "ALL" && row.createdByName !== ownerFilter) {
         return false;
       }
-      // Status Filter
       if (statusFilter === "IN_DELAY") {
         if (!delayedCommits[row.id]) return false;
       } else if (statusFilter === "PENDING") {
         if (delayedCommits[row.id]) return false;
       }
-      // Text Search
       if (search.trim()) {
         const q = search.toLowerCase();
         const titleMatch = row.title.toLowerCase().includes(q);
@@ -402,7 +361,6 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
       return true;
     });
 
-    // Sorting
     list.sort((a, b) => {
       if (sortBy === "LATEST") {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -436,7 +394,7 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
 
   const activeDelayedCount = Object.keys(delayedCommits).length;
 
-  // CSV Export Function (Matching Reference Export button)
+  // CSV Export Function
   const handleExportCSV = () => {
     if (filteredAndSortedRows.length === 0) {
       toast.error("No items to export in current filter view.");
@@ -517,639 +475,72 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* 1. Header Section (Matching Reference Page Title & Action Buttons) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
-              Approvals Queue
-            </h1>
-            {kpis.totalCount > 0 && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
-                {kpis.totalCount} awaiting signoff
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Review and track pending recordings, donations, and cash collections awaiting dual-control verification.
-          </p>
-        </div>
+      {/* 1. Header Section */}
+      <ApprovalsHeader
+        totalPending={kpis.totalCount}
+        onExport={handleExportCSV}
+        onNavigateToMasterLedger={() => router.push(`/mosques/${mosqueId}/transactions`)}
+        onRefresh={handleRefreshAll}
+      />
 
-        {/* Right Header Action Buttons (Matching Export & Primary Button) */}
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportCSV}
-            className="text-xs rounded-xl font-medium shadow-2xs gap-1.5"
-          >
-            <Download className="w-3.5 h-3.5 text-muted-foreground" />
-            Export
-          </Button>
+      {/* 2. Top Metric KPI Cards */}
+      <ApprovalsKpiCards kpis={kpis} />
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/mosques/${mosqueId}/transactions`)}
-            className="text-xs rounded-xl font-medium shadow-2xs gap-1.5"
-          >
-            <History className="w-3.5 h-3.5 text-muted-foreground" />
-            Master Ledger
-          </Button>
+      {/* 3. Delayed Commit Sticky Alert Bar */}
+      <ApprovalsDelayedBanner
+        activeDelayedCount={activeDelayedCount}
+        onCancelAll={cancelAllDelayedCommits}
+      />
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefreshAll}
-            className="text-xs rounded-xl font-medium shadow-2xs gap-1.5"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
-            Refresh
-          </Button>
-        </div>
-      </div>
+      {/* 4. Filter and Search Controls Toolbar */}
+      {/* <ApprovalsToolbar
+        search={search}
+        onSearchChange={setSearch}
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+        ownerFilter={ownerFilter}
+        onOwnerFilterChange={setOwnerFilter}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        distinctOwners={distinctOwners}
+        kpis={kpis}
+        onResetFilters={() => {
+          setSearch("");
+          setTypeFilter("ALL");
+          setOwnerFilter("ALL");
+          setStatusFilter("ALL");
+          setSortBy("LATEST");
+        }}
+      /> */}
 
-      {/* 2. Top Metric Cards (Row of 4 Cards - Matching Reference Layout) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Card 1: Total Pending */}
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Total Pending
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-[#006B5B] flex items-center justify-center">
-              <Clock className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl font-bold font-heading text-foreground tracking-tight">
-              {kpis.totalCount}
-            </div>
-            <div className="mt-2.5 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                <CheckCircle2 className="w-3 h-3" />
-                Dual Control
-              </span>
-              <span className="text-xs text-muted-foreground">needs verification</span>
-            </div>
-          </div>
-        </div>
+      {/* 5. Main Card Container with Table & Pagination */}
+      <ApprovalsTable
+        rows={paginatedRows}
+        totalFilteredCount={filteredAndSortedRows.length}
+        isDataLoading={isDataLoading}
+        totalKpiCount={kpis.totalCount}
+        currentUserId={user?.id}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        eligibleDonationsCount={eligibleDonations.length}
+        bulkDonationsTotal={bulkDonationsTotal}
+        onBulkApproveDonations={startBulkApproveDonations}
+        delayedCommits={delayedCommits}
+        onCancelDelayedCommit={cancelDelayedCommit}
+        onViewDetails={(txId) => {
+          setSelectedTxId(txId);
+          setIsDetailOpen(true);
+        }}
+        onRejectTransaction={(tx) => setTxToReject(tx)}
+        onApproveTransaction={startDelayedCommit}
+        onVerifyCollection={(collection) => setSelectedCollection(collection)}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
 
-        {/* Card 2: Pending Volume (Pipeline Value) */}
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Pending Volume
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-[#006B5B] flex items-center justify-center">
-              <Wallet className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-bold font-heading text-foreground tracking-tight">
-              {formatCurrency(kpis.totalVolume.toString())}
-            </div>
-            <div className="mt-2.5 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                100% poisha exact
-              </span>
-              <span className="text-xs text-muted-foreground">pending ledger</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Pending Income (Won Deals in ref) */}
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Pending Income
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-              <Coins className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl font-bold font-heading text-foreground tracking-tight">
-              {kpis.donationCount + kpis.collectionCount}
-            </div>
-            <div className="mt-2.5 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                {formatCurrency(kpis.donationVolume.toString())}
-              </span>
-              <span className="text-xs text-muted-foreground">donations & boxes</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Pending Expenses (Win Rate in ref) */}
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Pending Expenses
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
-              <TrendingDown className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl font-bold font-heading text-foreground tracking-tight">
-              {kpis.expenseCount}
-            </div>
-            <div className="mt-2.5 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
-                {formatCurrency(kpis.expenseVolume.toString())}
-              </span>
-              <span className="text-xs text-muted-foreground">treasurer signoff</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Delayed Commit Sticky Alert Bar (when any approval is in 5s grace window) */}
-      {activeDelayedCount > 0 && (
-        <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs text-amber-900 dark:text-amber-200">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-amber-600 animate-spin" />
-            <span>
-              <strong>{activeDelayedCount} transaction(s)</strong> committing to ledger. You have a 5-second undo grace period.
-            </span>
-          </div>
-          <Button
-            size="xs"
-            variant="outline"
-            onClick={cancelAllDelayedCommits}
-            className="border-amber-600 text-amber-700 dark:text-amber-300 font-semibold"
-          >
-            <RotateCcw className="w-3.5 h-3.5 mr-1" />
-            Undo All ({activeDelayedCount})
-          </Button>
-        </div>
-      )}
-
-      {/* 4. Filter and Search Bar (Matching Reference Controls Row) */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        {/* Search Input on Left */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search deals, party, occasion, fund, notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-2xs"
-          />
-        </div>
-
-        {/* Dropdown Filters on Right (Matching Stage ⌵, Owner ⌵, Status ⌵, Filter in Reference) */}
-        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          {/* Stage / Type Dropdown */}
-          <div className="relative">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 text-xs rounded-xl border border-border bg-card text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
-            >
-              <option value="ALL">Stage: All Types</option>
-              <option value="DONATION">● Donations ({kpis.donationCount})</option>
-              <option value="EXPENSE">● Expenses ({kpis.expenseCount})</option>
-              <option value="COLLECTION">● Box Counts ({kpis.collectionCount})</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-
-          {/* Owner / Creator Dropdown */}
-          <div className="relative">
-            <select
-              value={ownerFilter}
-              onChange={(e) => setOwnerFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 text-xs rounded-xl border border-border bg-card text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
-            >
-              <option value="ALL">Owner: All</option>
-              {distinctOwners.map((owner) => (
-                <option key={owner} value={owner}>
-                  {owner}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-
-          {/* Status Dropdown */}
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 text-xs rounded-xl border border-border bg-card text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
-            >
-              <option value="ALL">Status: All</option>
-              <option value="PENDING">Pending Signoff</option>
-              <option value="IN_DELAY">In 5s Grace Period</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-
-          {/* Reset Filters Icon Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearch("");
-              setTypeFilter("ALL");
-              setOwnerFilter("ALL");
-              setStatusFilter("ALL");
-              setSortBy("LATEST");
-            }}
-            title="Reset Filters"
-            className="h-8.5 w-8.5 p-0 rounded-xl border border-border bg-card hover:bg-muted"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
-          </Button>
-        </div>
-      </div>
-
-      {/* 5. Main Card Container with Table (Matching "All Deals" Card in Reference) */}
-      <div className="bg-card rounded-2xl border border-border shadow-xs overflow-hidden">
-        {/* Table Top Header Bar (Matching All Deals + Sort By in Reference) */}
-        <div className="p-4 sm:p-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-base font-bold text-foreground font-heading">
-              All Pending Items
-            </h2>
-            <Badge variant="outline" className="text-xs font-semibold py-0.5">
-              {filteredAndSortedRows.length} {filteredAndSortedRows.length === 1 ? "Item" : "Items"}
-            </Badge>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Quick Bulk Action for Donations if available */}
-            {eligibleDonations.length > 0 && activeDelayedCount === 0 && (
-              <Button
-                size="xs"
-                onClick={startBulkApproveDonations}
-                className="bg-[#006B5B] hover:bg-[#005246] text-white text-xs rounded-lg gap-1.5 font-medium shadow-2xs"
-              >
-                <CheckSquare className="w-3.5 h-3.5" />
-                Approve All {eligibleDonations.length} Donations ({formatCurrency(bulkDonationsTotal.toString())})
-              </Button>
-            )}
-
-            {/* Sort Dropdown (Matching "Sort by: Latest ⌵") */}
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span>Sort by:</span>
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="appearance-none pl-2 pr-6 py-1 text-xs rounded-lg border border-border bg-background text-foreground font-semibold focus:outline-none cursor-pointer"
-                >
-                  <option value="LATEST">Latest</option>
-                  <option value="OLDEST">Oldest</option>
-                  <option value="AMOUNT_DESC">Amount: High to Low</option>
-                  <option value="AMOUNT_ASC">Amount: Low to High</option>
-                </select>
-                <ChevronDown className="w-3 h-3 text-muted-foreground absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Table Body */}
-        {isDataLoading ? (
-          <div className="py-20 text-center space-y-3">
-            <Clock className="w-8 h-8 text-[#006B5B] animate-spin mx-auto opacity-70" />
-            <p className="text-xs text-muted-foreground">Loading pending items...</p>
-          </div>
-        ) : filteredAndSortedRows.length === 0 ? (
-          <div className="py-20 text-center space-y-3">
-            <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto opacity-80" />
-            <h3 className="text-base font-semibold text-foreground">
-              {kpis.totalCount === 0
-                ? "All Clear! No Pending Approvals"
-                : "No matching pending approvals"}
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              {kpis.totalCount === 0
-                ? "All recordings and cash box counts have been reviewed and posted to the master ledger."
-                : "Try adjusting your search criteria or filter settings to view other queue items."}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <Thead>
-                <Tr className="border-b border-border/80 bg-muted/20">
-                  <Th className="text-xs font-semibold py-3.5">Item Name</Th>
-                  <Th className="text-xs font-semibold py-3.5">Fund & Account</Th>
-                  <Th className="text-xs font-semibold py-3.5">Amount</Th>
-                  <Th className="text-xs font-semibold py-3.5">Stage / Type</Th>
-                  <Th className="text-xs font-semibold py-3.5">Owner</Th>
-                  <Th className="text-xs font-semibold py-3.5">Date</Th>
-                  <Th className="text-xs font-semibold py-3.5 text-right">Status & Action</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {paginatedRows.map((row) => {
-                  const isDelayed = Boolean(delayedCommits[row.id]);
-                  const delayItem = delayedCommits[row.id];
-                  const isSelfCreated = Boolean(
-                    user?.id && row.createdById && user.id === row.createdById
-                  );
-
-                  return (
-                    <Tr
-                      key={row.id}
-                      className={`hover:bg-muted/30 transition-colors ${
-                        isDelayed ? "bg-amber-500/5 font-medium" : ""
-                      }`}
-                    >
-                      {/* 1. Item Name / Description (Deal Name) */}
-                      <Td className="py-4">
-                        <div className="font-semibold text-xs text-foreground truncate max-w-xs">
-                          {row.title}
-                        </div>
-                        {row.subtitle && (
-                          <div className="text-[11px] text-muted-foreground truncate max-w-xs mt-0.5">
-                            {row.subtitle}
-                          </div>
-                        )}
-                      </Td>
-
-                      {/* 2. Fund & Account (Company) */}
-                      <Td className="py-4">
-                        <div className="text-xs font-medium text-foreground truncate max-w-[150px]">
-                          {row.fundName}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground truncate max-w-[150px]">
-                          {row.accountName}
-                        </div>
-                      </Td>
-
-                      {/* 3. Value / Amount (Value) */}
-                      <Td className="py-4 whitespace-nowrap">
-                        <span
-                          className={`text-xs font-bold ${
-                            row.transactionType === "DONATION"
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : row.transactionType === "EXPENSE"
-                              ? "text-rose-600 dark:text-rose-400"
-                              : "text-amber-600 dark:text-amber-400"
-                          }`}
-                        >
-                          {formatCurrency(row.amount)}
-                        </span>
-                      </Td>
-
-                      {/* 4. Stage / Type (Stage with Colored Dot matching Reference) */}
-                      <Td className="py-4 whitespace-nowrap">
-                        {row.transactionType === "DONATION" ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                            Donation
-                          </span>
-                        ) : row.transactionType === "EXPENSE" ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
-                            <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                            Expense
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
-                            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-                            Box Count
-                          </span>
-                        )}
-                      </Td>
-
-                      {/* 5. Owner / Recorded By (Matching Reference Owner with Avatar) */}
-                      <Td className="py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center text-[10px] font-bold text-foreground shrink-0">
-                            {row.createdByName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="truncate max-w-[120px]">
-                            <span className="text-xs font-medium text-foreground block">
-                              {row.createdByName}
-                            </span>
-                            {isSelfCreated && (
-                              <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1 py-0.2 rounded">
-                                Self-Recorded
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </Td>
-
-                      {/* 6. Date (Expected Close) */}
-                      <Td className="py-4 text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(row.date).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </Td>
-
-                      {/* 7. Status & Actions (Status Column) */}
-                      <Td className="py-4 text-right whitespace-nowrap">
-                        {isDelayed ? (
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full animate-pulse">
-                              <Clock className="w-3 h-3 animate-spin" />
-                              Commit in {delayItem.secondsRemaining}s
-                            </span>
-                            <Button
-                              size="xs"
-                              variant="outline"
-                              onClick={() => cancelDelayedCommit(row.id)}
-                              className="text-xs h-7 px-2 border-amber-600 text-amber-700 dark:text-amber-300 font-semibold"
-                            >
-                              Undo
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-end gap-1.5">
-                            {/* Status Badge in Soft Pill */}
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 mr-1">
-                              Pending
-                            </span>
-
-                            {/* View Details */}
-                            {row.rawTransaction && (
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                onClick={() => {
-                                  setSelectedTxId(row.id);
-                                  setIsDetailOpen(true);
-                                }}
-                                title="View Details"
-                                className="h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
-
-                            {/* Reject Button (Transactions only) */}
-                            {row.rawTransaction && (
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                onClick={() => setTxToReject(row.rawTransaction!)}
-                                title="Reject Transaction"
-                                className="h-7 w-7 p-0 rounded-lg text-destructive hover:bg-destructive/10"
-                              >
-                                <XCircle className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
-
-                            {/* Approve / Verify Button */}
-                            {row.sourceType === "COLLECTION" ? (
-                              <Button
-                                size="xs"
-                                disabled={isSelfCreated}
-                                onClick={() => setSelectedCollection(row.rawCollection!)}
-                                title={
-                                  isSelfCreated
-                                    ? "Self-verification blocked by dual control"
-                                    : "Verify & Post Collection"
-                                }
-                                className="h-7 px-2.5 text-xs bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-2xs"
-                              >
-                                <Check className="w-3 h-3 mr-1" />
-                                Verify
-                              </Button>
-                            ) : (
-                              <Button
-                                size="xs"
-                                disabled={isSelfCreated}
-                                onClick={() => startDelayedCommit(row.rawTransaction!)}
-                                title={
-                                  isSelfCreated
-                                    ? "Self-approval blocked by policy"
-                                    : "Approve (5s undo grace period)"
-                                }
-                                className="h-7 px-2.5 text-xs bg-[#006B5B] hover:bg-[#005246] text-white font-medium rounded-lg shadow-2xs"
-                              >
-                                <Check className="w-3 h-3 mr-1" />
-                                Approve
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </Td>
-                    </Tr>
-                  );
-                })}
-              </Tbody>
-            </Table>
-          </div>
-        )}
-
-        {/* 6. Bottom Pagination Bar (Matching Reference Layout << < 1 2 3 > >>) */}
-        {!isDataLoading && filteredAndSortedRows.length > 0 && (
-          <div className="p-4 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/10">
-            <div className="text-xs text-muted-foreground">
-              Showing{" "}
-              <strong className="text-foreground font-semibold">
-                {(currentPage - 1) * itemsPerPage + 1}
-              </strong>{" "}
-              to{" "}
-              <strong className="text-foreground font-semibold">
-                {Math.min(currentPage * itemsPerPage, filteredAndSortedRows.length)}
-              </strong>{" "}
-              of{" "}
-              <strong className="text-foreground font-semibold">
-                {filteredAndSortedRows.length}
-              </strong>{" "}
-              pending items
-            </div>
-
-            {/* Pagination controls */}
-            <div className="flex items-center gap-1 self-center sm:self-auto">
-              {/* First Page */}
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0 rounded-lg text-xs"
-              >
-                <ChevronsLeft className="w-3.5 h-3.5" />
-              </Button>
-
-              {/* Prev Page */}
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0 rounded-lg text-xs"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </Button>
-
-              {/* Page Number Buttons */}
-              {Array.from({ length: totalPages }).map((_, idx) => {
-                const pageNum = idx + 1;
-                // Show pages around current
-                if (
-                  pageNum === 1 ||
-                  pageNum === totalPages ||
-                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                ) {
-                  return (
-                    <Button
-                      key={pageNum}
-                      size="xs"
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`h-8 w-8 p-0 rounded-lg text-xs font-semibold ${
-                        currentPage === pageNum
-                          ? "bg-[#006B5B] hover:bg-[#005246] text-white"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                } else if (
-                  pageNum === currentPage - 2 ||
-                  pageNum === currentPage + 2
-                ) {
-                  return (
-                    <span key={pageNum} className="px-1 text-xs text-muted-foreground">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              })}
-
-              {/* Next Page */}
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0 rounded-lg text-xs"
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-
-              {/* Last Page */}
-              <Button
-                variant="outline"
-                size="xs"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0 rounded-lg text-xs"
-              >
-                <ChevronsRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Transaction Details Modal */}
+      {/* Dialogs */}
       <TransactionDetailsModal
         isOpen={isDetailOpen}
         onClose={() => {
@@ -1176,7 +567,6 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
         }
       />
 
-      {/* Reject Reason Dialog */}
       <RejectTransactionDialog
         isOpen={Boolean(txToReject)}
         onClose={() => setTxToReject(null)}
@@ -1184,7 +574,6 @@ export function ApprovalsView({ mosqueId }: { mosqueId: string }) {
         transaction={txToReject}
       />
 
-      {/* Box Count Verification Dialog */}
       <VerifyCollectionDialog
         isOpen={Boolean(selectedCollection)}
         onClose={() => {
