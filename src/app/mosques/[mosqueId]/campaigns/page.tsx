@@ -90,7 +90,7 @@ export default function CampaignsPage() {
       </div>
 
       {/* Filters Bar */}
-      <div className="p-4 bg-white rounded-xl border border-gray-200/80 shadow-xs flex flex-col sm:flex-row items-center gap-3">
+      <div className="p-4 bg-white rounded-[14px] border border-gray-200/80 flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
           <input
@@ -121,7 +121,7 @@ export default function CampaignsPage() {
           Loading campaigns...
         </div>
       ) : filteredCampaigns.length === 0 ? (
-        <div className="py-16 text-center text-gray-500 bg-white rounded-xl border border-gray-200/80">
+        <div className="py-16 text-center text-gray-500 bg-white rounded-[14px] border border-gray-200/80">
           <CheckSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
           <p className="font-semibold text-gray-700">No campaigns found</p>
           <p className="text-xs text-gray-400 mt-1">
@@ -137,7 +137,7 @@ export default function CampaignsPage() {
             return (
               <div
                 key={camp.id}
-                className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-5 flex flex-col justify-between hover:shadow-md transition-shadow"
+                className="bg-white rounded-[14px] border border-gray-200/80  p-5 flex flex-col justify-between hover:shadow-md transition-shadow"
               >
                 <div>
                   {/* Top tags */}

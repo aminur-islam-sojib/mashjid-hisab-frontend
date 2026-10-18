@@ -176,7 +176,7 @@ export function TransactionsView({ mosqueId }: { mosqueId: string }) {
 
       {/* Pending Items Notice in Ledger */}
       {pendingCount > 0 && isApprover && (
-        <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-xl flex items-center justify-between gap-3 text-amber-900 dark:text-amber-100 text-xs shadow-xs">
+        <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-[14px] flex items-center justify-between gap-3 text-amber-900 dark:text-amber-100 text-xs shadow-xs">
           <div className="flex items-center space-x-2.5">
             <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
@@ -196,7 +196,7 @@ export function TransactionsView({ mosqueId }: { mosqueId: string }) {
       )}
 
       {/* Filters Bar */}
-      <div className="p-4 bg-card rounded-xl border border-border shadow-xs space-y-3">
+      <div className="p-4 bg-card rounded-[14px] border border-border space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           {/* Search */}
           <div className="relative md:col-span-1">
@@ -294,7 +294,7 @@ export function TransactionsView({ mosqueId }: { mosqueId: string }) {
       </div>
 
       {/* Table */}
-      <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
+      <div className="bg-card rounded-[14px] border border-border shadow-xs overflow-hidden">
         {isLedgerLoading ? (
           <div className="py-16 text-center text-xs text-muted-foreground">
             Loading transactions...
