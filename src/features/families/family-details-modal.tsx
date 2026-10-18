@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Home, Users, Trash2, Loader2, Plus, Phone } from "lucide-react";
+import { Home, Users, Trash2, Loader2, Plus, Phone, User } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -65,33 +65,49 @@ export function FamilyDetailsModal({
       isOpen={isOpen}
       onClose={onClose}
       title={family?.name || "Family Household"}
+      description="Registered household members, dependents, and contact details."
+      className="max-w-4xl sm:max-w-4xl w-full"
     >
       {isLoading ? (
-        <div className="py-12 flex flex-col items-center justify-center text-gray-400 space-y-2">
+        <div className="py-16 flex flex-col items-center justify-center text-muted-foreground space-y-2">
           <Loader2 className="w-6 h-6 animate-spin text-[#006B5B]" />
           <p className="text-xs">Loading family household details...</p>
         </div>
       ) : !family ? (
-        <div className="py-8 text-center text-sm text-gray-500">
+        <div className="py-12 text-center text-sm text-muted-foreground">
           Family record not found.
         </div>
       ) : (
-        <div className="space-y-4">
-          {/* Household Metadata */}
-          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
-            <div>
-              <span className="text-xs text-gray-400 font-medium">Head of Household</span>
-              <p className="font-bold text-gray-900 mt-0.5">
+        <div className="space-y-5">
+          {/* Household Summary Card */}
+          <div className="p-4 bg-muted/40 rounded-xl border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Head of Household
+                </span>
+                <Badge variant="outline" className="text-[10px] font-medium">
+                  {members.length + 1} Household {members.length + 1 === 1 ? "Member" : "Members"}
+                </Badge>
+              </div>
+              <p className="font-bold text-base text-foreground flex items-center gap-1.5">
+                <User className="w-4 h-4 text-[#006B5B]" />
                 {family.headMembership?.user?.name || family.head?.user?.name || "Registered Member"}
               </p>
-              {(family.headMembership?.user?.phone || family.head?.user?.phone) && (
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {family.headMembership?.user?.phone || family.head?.user?.phone}
-                </p>
-              )}
-              {family.address && (
-                <p className="text-xs text-gray-500 mt-0.5">{family.address}</p>
-              )}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                {(family.headMembership?.user?.phone || family.head?.user?.phone) && (
+                  <span className="flex items-center gap-1">
+                    <Phone className="w-3.5 h-3.5" />
+                    {family.headMembership?.user?.phone || family.head?.user?.phone}
+                  </span>
+                )}
+                {family.address && (
+                  <span className="flex items-center gap-1">
+                    <Home className="w-3.5 h-3.5" />
+                    {family.address}
+                  </span>
+                )}
+              </div>
             </div>
 
             <Button
@@ -100,32 +116,40 @@ export function FamilyDetailsModal({
                 onClose();
                 onAddMember(family);
               }}
-              className="bg-[#006B5B] hover:bg-[#005246] text-white text-xs"
+              className="gap-1.5 self-start sm:self-auto font-semibold shrink-0"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
+              <Plus className="w-4 h-4" />
               Add Member
             </Button>
           </div>
 
           {/* Members Table */}
-          <div>
-            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-              Household Dependents ({members.length})
-            </h4>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                Household Dependents & Members ({members.length})
+              </h4>
+            </div>
 
             {members.length === 0 ? (
-              <div className="py-8 text-center text-xs text-gray-400 bg-white border border-gray-100 rounded-lg">
-                No dependents registered yet. Click &ldquo;Add Member&rdquo; above.
+              <div className="py-12 text-center space-y-2 bg-card border border-border rounded-xl">
+                <Users className="w-8 h-8 text-muted-foreground mx-auto mb-1 opacity-50" />
+                <p className="font-semibold text-sm text-foreground">No dependents registered yet</p>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Click &ldquo;Add Member&rdquo; above to register spouses, children, or elderly dependents under this household.
+                </p>
               </div>
             ) : (
-              <div className="border border-gray-100 rounded-lg overflow-hidden">
+              <div className="border border-border rounded-xl overflow-hidden bg-card shadow-xs">
                 <Table>
                   <Thead>
                     <Tr>
                       <Th>Name</Th>
                       <Th>Relation</Th>
                       <Th>Gender</Th>
+                      <Th>Date of Birth</Th>
                       <Th>Blood Group</Th>
+                      <Th>Occupation</Th>
                       <Th>Phone</Th>
                       <Th className="text-right">Action</Th>
                     </Tr>
@@ -133,27 +157,63 @@ export function FamilyDetailsModal({
                   <Tbody>
                     {members.map((m) => (
                       <Tr key={m.id}>
-                        <Td className="font-semibold text-gray-900">{m.name}</Td>
+                        <Td className="font-semibold text-xs text-foreground">
+                          {m.name}
+                          {m.linkedMembershipId && (
+                            <span className="ml-1.5 inline-flex items-center text-[10px] text-[#006B5B] font-normal">
+                              (Registered User)
+                            </span>
+                          )}
+                        </Td>
                         <Td>
                           <Badge variant="outline" className="text-[10px]">
                             {m.relation}
                           </Badge>
                         </Td>
-                        <Td className="text-xs text-gray-600">{m.gender || "—"}</Td>
-                        <Td className="text-xs font-mono text-gray-700">
-                          {m.bloodGroup || "—"}
+                        <Td className="text-xs text-muted-foreground">
+                          {m.gender ? (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] font-normal"
+                            >
+                              {m.gender}
+                            </Badge>
+                          ) : (
+                            "—"
+                          )}
                         </Td>
-                        <Td className="text-xs text-gray-600">{m.phone || "—"}</Td>
-                        <Td className="text-right">
+                        <Td className="text-xs text-muted-foreground whitespace-nowrap">
+                          {m.dateOfBirth
+                            ? new Date(m.dateOfBirth).toLocaleDateString()
+                            : "—"}
+                        </Td>
+                        <Td className="text-xs font-mono text-muted-foreground">
+                          {m.bloodGroup ? (
+                            <Badge variant="outline" className="text-[10px] font-mono">
+                              {m.bloodGroup}
+                            </Badge>
+                          ) : (
+                            "—"
+                          )}
+                        </Td>
+                        <Td className="text-xs text-muted-foreground">
+                          {m.occupation || "—"}
+                        </Td>
+                        <Td className="text-xs text-muted-foreground whitespace-nowrap">
+                          {m.phone || "—"}
+                        </Td>
+                        <Td className="text-right whitespace-nowrap">
                           <Button
                             variant="ghost"
-                            size="sm"
-                            className="text-xs text-red-600 hover:bg-red-50"
+                            size="xs"
+                            className="text-destructive hover:bg-destructive/10"
                             onClick={() => {
-                              if (confirm(`Remove ${m.name} from family?`)) {
+                              if (confirm(`Remove ${m.name} from this family household?`)) {
                                 removeMemberMutation.mutate(m.id);
                               }
                             }}
+                            disabled={removeMemberMutation.isPending}
+                            title="Remove member"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>

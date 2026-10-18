@@ -18,6 +18,7 @@ export interface FamilyMemberItem {
   phone?: string | null;
   occupation?: string | null;
   bloodGroup?: string | null;
+  linkedMembershipId?: string | null;
   createdAt: string;
 }
 
