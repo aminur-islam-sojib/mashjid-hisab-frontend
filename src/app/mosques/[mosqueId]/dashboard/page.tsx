@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  CirclePoundSterling,
 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
@@ -430,7 +431,7 @@ export default function MosqueDashboardPage() {
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-[14px] bg-secondary text-primary flex items-center justify-center">
-                    <PiggyBank className="w-4 h-4" />
+                    <CirclePoundSterling className="w-4 h-4" />
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold font-heading text-foreground">
