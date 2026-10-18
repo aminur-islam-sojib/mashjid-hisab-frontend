@@ -192,7 +192,7 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
       {activeTab === "directory" && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="p-4 bg-card rounded-xl border border-border shadow-xs flex flex-col sm:flex-row items-center gap-3">
+          <div className="p-4 bg-card rounded-[14px] border border-border shadow-xs flex flex-col sm:flex-row items-center gap-3">
             <div className="relative flex-1 w-full">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
               <input
@@ -235,7 +235,7 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
           </div>
 
           {/* Members Table */}
-          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
+          <div className="bg-card rounded-[14px] border border-border shadow-xs overflow-hidden">
             {isMembersLoading ? (
               <div className="py-16 text-center text-xs text-muted-foreground">
                 Loading members...

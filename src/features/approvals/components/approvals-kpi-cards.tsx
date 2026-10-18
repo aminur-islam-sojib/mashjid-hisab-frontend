@@ -22,7 +22,7 @@ export function ApprovalsKpiCards({ kpis }: ApprovalsKpiCardsProps) {
             <Clock className="w-5 h-5" />
           </div>
         </div>
-        <div className="mt-3">
+        <div className="mt-2">
           <div className="text-3xl font-bold font-heading text-foreground tracking-tight">
             {kpis.totalCount}
           </div>
@@ -46,7 +46,7 @@ export function ApprovalsKpiCards({ kpis }: ApprovalsKpiCardsProps) {
             <Wallet className="w-5 h-5" />
           </div>
         </div>
-        <div className="mt-3">
+        <div className="mt-2">
           <div className="text-2xl sm:text-3xl font-bold font-heading text-foreground tracking-tight">
             {formatCurrency(kpis.totalVolume.toString())}
           </div>
@@ -69,7 +69,7 @@ export function ApprovalsKpiCards({ kpis }: ApprovalsKpiCardsProps) {
             <Coins className="w-5 h-5" />
           </div>
         </div>
-        <div className="mt-3">
+        <div className="mt-2">
           <div className="text-3xl font-bold font-heading text-foreground tracking-tight">
             {kpis.donationCount + kpis.collectionCount}
           </div>
@@ -92,7 +92,7 @@ export function ApprovalsKpiCards({ kpis }: ApprovalsKpiCardsProps) {
             <TrendingDown className="w-5 h-5" />
           </div>
         </div>
-        <div className="mt-3">
+        <div className="mt-2">
           <div className="text-3xl font-bold font-heading text-foreground tracking-tight">
             {kpis.expenseCount}
           </div>
