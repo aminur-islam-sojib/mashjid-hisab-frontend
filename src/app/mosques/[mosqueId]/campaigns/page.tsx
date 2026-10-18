@@ -13,17 +13,19 @@ import {
   Calendar,
   Ban,
   ArrowUpRight,
+  Coins,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/money";
 import { useMosque } from "@/providers/mosque-provider";
-import { ADMIN_ONLY_ROLES } from "@/lib/roles";
+import { ADMIN_ONLY_ROLES, COLLECTION_OPERATOR_ROLES } from "@/lib/roles";
 import { CampaignItem } from "@/features/campaigns/types";
 import { CampaignDialog } from "@/features/campaigns/campaign-dialog";
 import { CloseCampaignDialog } from "@/features/campaigns/close-campaign-dialog";
 import { CampaignDonorsModal } from "@/features/campaigns/campaign-donors-modal";
+import { RecordCampaignContributionDialog } from "@/features/campaigns/record-campaign-contribution-dialog";
 
 export default function CampaignsPage() {
   const params = useParams();
@@ -36,8 +38,10 @@ export default function CampaignsPage() {
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [campaignToClose, setCampaignToClose] = React.useState<CampaignItem | null>(null);
   const [campaignForDonors, setCampaignForDonors] = React.useState<CampaignItem | null>(null);
+  const [campaignForContribution, setCampaignForContribution] = React.useState<CampaignItem | null>(null);
 
   const isAdmin = canAccess(ADMIN_ONLY_ROLES);
+  const canRecordContribution = canAccess(COLLECTION_OPERATOR_ROLES);
 
   // Fetch campaigns
   const { data: campaignsData, isLoading } = useQuery<{ data: CampaignItem[] }>({
@@ -220,6 +224,17 @@ export default function CampaignsPage() {
                   </div>
 
                   <div className="flex items-center space-x-2">
+                    {camp.status === "ACTIVE" && canRecordContribution && (
+                      <Button
+                        size="sm"
+                        className="text-xs h-7 px-2.5 bg-[#006B5B] hover:bg-[#005246] text-white font-medium shadow-xs"
+                        onClick={() => setCampaignForContribution(camp)}
+                      >
+                        <Coins className="w-3.5 h-3.5 mr-1" />
+                        Add Money
+                      </Button>
+                    )}
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -269,6 +284,16 @@ export default function CampaignsPage() {
         mosqueId={mosqueId}
         campaign={campaignForDonors}
       />
+
+      {/* Record Contribution Dialog */}
+      {campaignForContribution && (
+        <RecordCampaignContributionDialog
+          isOpen={Boolean(campaignForContribution)}
+          onClose={() => setCampaignForContribution(null)}
+          mosqueId={mosqueId}
+          campaign={campaignForContribution}
+        />
+      )}
     </div>
   );
 }

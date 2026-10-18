@@ -281,7 +281,7 @@ export default function MosqueDashboardPage() {
               {/* Attention Strip: Pending Approvals & Box Count Sessions */}
               {((dashboardData?.pendingApprovals?.totalPending || 0) > 0 ||
                 (dashboardData?.pendingApprovals?.countingSessionsToVerify || 0) > 0) && (
-                  <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-xl p-4 space-y-3 shadow-xs">
+                  <div className="bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800 rounded-[14px] p-4 space-y-3 ">
                     {/* Item 1: Pending Transactions */}
                     {(dashboardData?.pendingApprovals?.totalPending || 0) > 0 && (
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
