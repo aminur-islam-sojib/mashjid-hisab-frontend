@@ -20,7 +20,8 @@ interface AddFamilyMemberDialogProps {
   isOpen: boolean;
   onClose: () => void;
   mosqueId: string;
-  family: FamilyRecord | null;
+  family?: FamilyRecord | null;
+  targetMember?: { id: string; name: string } | null;
   onSuccess?: () => void;
 }
 
@@ -29,6 +30,7 @@ export function AddFamilyMemberDialog({
   onClose,
   mosqueId,
   family,
+  targetMember,
   onSuccess,
 }: AddFamilyMemberDialogProps) {
   const queryClient = useQueryClient();
@@ -67,7 +69,14 @@ export function AddFamilyMemberDialog({
 
   const mutation = useMutation({
     mutationFn: async (values: FamilyMemberValues) => {
-      if (!family) return;
+      const endpoint = family?.id
+        ? `/mosques/${mosqueId}/families/${family.id}/members`
+        : targetMember?.id
+          ? `/mosques/${mosqueId}/families/member/${targetMember.id}/members`
+          : null;
+
+      if (!endpoint) return;
+
       const payload: Record<string, any> = {
         name: values.name.trim(),
         relation: values.relation,
@@ -83,15 +92,18 @@ export function AddFamilyMemberDialog({
       if (values.occupation?.trim()) payload.occupation = values.occupation.trim();
       if (values.bloodGroup?.trim()) payload.bloodGroup = values.bloodGroup.trim();
 
-      return apiClient.post(
-        `/mosques/${mosqueId}/families/${family.id}/members`,
-        payload
-      );
+      return apiClient.post(endpoint, payload);
     },
     onSuccess: () => {
       toast.success("Family member added.");
       queryClient.invalidateQueries({ queryKey: ["families", mosqueId] });
-      queryClient.invalidateQueries({ queryKey: ["family-detail", mosqueId, family?.id] });
+      queryClient.invalidateQueries({ queryKey: ["members", mosqueId] });
+      if (family?.id) {
+        queryClient.invalidateQueries({ queryKey: ["family-detail", mosqueId, family.id] });
+      }
+      if (targetMember?.id) {
+        queryClient.invalidateQueries({ queryKey: ["member-family", mosqueId, targetMember.id] });
+      }
       onSuccess?.();
       onClose();
     },
@@ -104,13 +116,15 @@ export function AddFamilyMemberDialog({
     mutation.mutate(values);
   };
 
-  if (!family) return null;
+  if (!family && !targetMember) return null;
+
+  const displayName = family?.name || (targetMember ? `${targetMember.name}'s Household` : "Family");
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Add Member: ${family.name}`}
+      title={`Add Member: ${displayName}`}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1">
@@ -153,7 +167,6 @@ export function AddFamilyMemberDialog({
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
-              <option value="Other">Other</option>
             </select>
           </div>
         </div>

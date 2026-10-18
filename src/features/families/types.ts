@@ -14,7 +14,7 @@ export interface FamilyMemberItem {
   name: string;
   relation: FamilyRelation;
   dateOfBirth?: string | null;
-  gender?: string | null;
+  gender?: "Male" | "Female" | null;
   phone?: string | null;
   occupation?: string | null;
   bloodGroup?: string | null;

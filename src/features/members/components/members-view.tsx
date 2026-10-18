@@ -23,6 +23,7 @@ import { InviteMemberDialog } from "../invite-member-dialog";
 import { DirectCreateMemberDialog } from "../direct-create-member-dialog";
 import { UpdateRoleDialog } from "../update-role-dialog";
 import { GenerateInviteLinkDialog } from "../generate-invite-link-dialog";
+import { AddFamilyMemberDialog } from "@/features/families/add-family-member-dialog";
 
 export function MembersView({ mosqueId }: { mosqueId: string }) {
   const { canAccess } = useMosque();
@@ -41,6 +42,7 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
   const [isDirectCreateOpen, setIsDirectCreateOpen] = React.useState(false);
   const [isGenerateLinkOpen, setIsGenerateLinkOpen] = React.useState(false);
   const [memberToEdit, setMemberToEdit] = React.useState<MosqueMemberItem | null>(null);
+  const [memberForFamily, setMemberForFamily] = React.useState<MosqueMemberItem | null>(null);
 
   const isAdmin = canAccess(ADMIN_ONLY_ROLES);
   const canDirectCreate = canAccess(FINANCIAL_OPERATOR_ROLES);
@@ -292,6 +294,15 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
                             <Button
                               variant="ghost"
                               size="xs"
+                              onClick={() => setMemberForFamily(member)}
+                              title="Add / Manage Family"
+                            >
+                              <Users className="w-3.5 h-3.5 mr-1" />
+                              Family
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="xs"
                               onClick={() => setMemberToEdit(member)}
                             >
                               Edit
@@ -434,6 +445,18 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
         isOpen={isGenerateLinkOpen}
         onClose={() => setIsGenerateLinkOpen(false)}
         mosqueId={mosqueId}
+      />
+
+      {/* Add Family Member for Selected Mosque Member */}
+      <AddFamilyMemberDialog
+        isOpen={Boolean(memberForFamily)}
+        onClose={() => setMemberForFamily(null)}
+        mosqueId={mosqueId}
+        targetMember={
+          memberForFamily
+            ? { id: memberForFamily.id, name: memberForFamily.user.name }
+            : null
+        }
       />
     </div>
   );

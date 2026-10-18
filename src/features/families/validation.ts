@@ -6,6 +6,7 @@ export const familySchema = z.object({
     .min(2, "Family name must be at least 2 characters")
     .max(100, "Family name cannot exceed 100 characters"),
   address: z.string().max(200, "Address cannot exceed 200 characters").optional(),
+  headMembershipId: z.string().optional(),
 });
 
 export type FamilyValues = z.infer<typeof familySchema>;
@@ -26,7 +27,7 @@ export const familyMemberSchema = z.object({
     "OTHER",
   ]),
   dateOfBirth: z.string().optional(),
-  gender: z.string().max(20).optional(),
+  gender: z.enum(["Male", "Female"]).optional(),
   phone: z.string().max(30).optional(),
   occupation: z.string().max(100).optional(),
   bloodGroup: z.string().max(10).optional(),
