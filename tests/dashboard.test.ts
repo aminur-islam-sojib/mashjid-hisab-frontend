@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { formatCurrency } from "../src/lib/money";
+import { formatCurrency, formatCompactCurrency } from "../src/lib/money";
 
 describe("Dashboard Home & Financial Integration Test Suite", () => {
   it("formats dashboard currency properly end-to-end", () => {
@@ -8,6 +8,13 @@ describe("Dashboard Home & Financial Integration Test Suite", () => {
     assert.equal(formatCurrency(845000n, { showDecimals: false }), "৳8,450");
     assert.equal(formatCurrency("845000", { showDecimals: false }), "৳8,450");
     assert.equal(formatCurrency(0n, { showDecimals: false }), "৳0");
+
+    // Compact currency formatting for chart Y-axis scale
+    assert.equal(formatCompactCurrency(1100000n), "৳11k");
+    assert.equal(formatCompactCurrency(730000n), "৳7.3k");
+    assert.equal(formatCompactCurrency(360000n), "৳3.6k");
+    assert.equal(formatCompactCurrency(0n), "৳0");
+    assert.equal(formatCompactCurrency(150000000n), "৳1.5M");
   });
 
   it("handles zero and unallocated poisha properly", () => {
@@ -17,17 +24,35 @@ describe("Dashboard Home & Financial Integration Test Suite", () => {
     assert.equal(formatCurrency(unallocatedAmount), "৳1,500.00");
   });
 
-  it("handles trend calculation and milestone point coordinate constraints", () => {
+  it("handles trend calculation and milestone point coordinate constraints across responsive widths", () => {
     const maxVal = 1000000n;
     const currentVal = 500000n;
     const ratio = Number(currentVal) / Number(maxVal);
     assert.equal(ratio, 0.5);
 
-    const yBaseline = 121;
-    const yTop = 14;
+    const yBaseline = 120;
+    const yTop = 16;
     const y = yBaseline - ratio * (yBaseline - yTop);
-    assert.equal(y, 67.5);
+    assert.equal(y, 68);
     assert.ok(y >= yTop && y <= yBaseline);
+
+    // Responsive X-span scaling across desktop and mobile widths
+    for (const testWidth of [320, 500, 640, 800]) {
+      const xStart = 38;
+      const xEnd = Math.max(xStart + 60, testWidth - 8);
+      const numPoints = 5;
+      const coords = Array.from({ length: numPoints }, (_, idx) => {
+        return xStart + (idx / (numPoints - 1)) * (xEnd - xStart);
+      });
+
+      assert.equal(coords[0], xStart);
+      assert.equal(coords[coords.length - 1], xEnd);
+      assert.ok(xEnd <= testWidth - 8);
+      // Ensure points are strictly ascending across the entire width
+      for (let i = 0; i < coords.length - 1; i++) {
+        assert.ok(coords[i] < coords[i + 1]);
+      }
+    }
   });
 
   it("handles multi-period dataset selection and formatting cleanly", () => {

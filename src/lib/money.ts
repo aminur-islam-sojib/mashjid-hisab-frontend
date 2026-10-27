@@ -84,6 +84,37 @@ export function formatCurrency(
   }
 }
 
+/**
+ * Formats integer poisha into a compact notation string (e.g. ৳1.2k, ৳10k, ৳1.5M).
+ */
+export function formatCompactCurrency(
+  poisha: string | number | bigint | null | undefined,
+  options?: { symbol?: string }
+): string {
+  if (poisha === null || poisha === undefined) return "৳0";
+  const { symbol = "৳" } = options ?? {};
+  try {
+    const raw = typeof poisha === "bigint" ? poisha : BigInt(String(poisha).trim() || "0");
+    if (raw === 0n) return `${symbol}0`;
+    const isNegative = raw < 0n;
+    const abs = isNegative ? -raw : raw;
+    const taka = Number(abs) / 100;
+    const sign = isNegative ? "-" : "";
+
+    if (taka >= 1000000) {
+      const m = taka / 1000000;
+      return `${sign}${symbol}${m >= 10 ? Math.round(m) : m.toFixed(1)}M`;
+    }
+    if (taka >= 1000) {
+      const k = taka / 1000;
+      return `${sign}${symbol}${k >= 10 ? Math.round(k) : k.toFixed(1)}k`;
+    }
+    return `${sign}${symbol}${Math.round(taka)}`;
+  } catch {
+    return `${symbol}0`;
+  }
+}
+
 const ONES = [
   "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
   "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",

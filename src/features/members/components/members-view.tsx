@@ -23,6 +23,7 @@ import { InviteMemberDialog } from "../invite-member-dialog";
 import { DirectCreateMemberDialog } from "../direct-create-member-dialog";
 import { UpdateRoleDialog } from "../update-role-dialog";
 import { GenerateInviteLinkDialog } from "../generate-invite-link-dialog";
+import { AddFamilyMemberDialog } from "@/features/families/add-family-member-dialog";
 
 export function MembersView({ mosqueId }: { mosqueId: string }) {
   const { canAccess } = useMosque();
@@ -41,6 +42,7 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
   const [isDirectCreateOpen, setIsDirectCreateOpen] = React.useState(false);
   const [isGenerateLinkOpen, setIsGenerateLinkOpen] = React.useState(false);
   const [memberToEdit, setMemberToEdit] = React.useState<MosqueMemberItem | null>(null);
+  const [memberForFamily, setMemberForFamily] = React.useState<MosqueMemberItem | null>(null);
 
   const isAdmin = canAccess(ADMIN_ONLY_ROLES);
   const canDirectCreate = canAccess(FINANCIAL_OPERATOR_ROLES);
@@ -190,7 +192,7 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
       {activeTab === "directory" && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="p-4 bg-card rounded-xl border border-border shadow-xs flex flex-col sm:flex-row items-center gap-3">
+          <div className="p-4 bg-card rounded-[14px] border border-border shadow-xs flex flex-col sm:flex-row items-center gap-3">
             <div className="relative flex-1 w-full">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
               <input
@@ -233,7 +235,7 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
           </div>
 
           {/* Members Table */}
-          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
+          <div className="bg-card rounded-[14px] border border-border shadow-xs overflow-hidden">
             {isMembersLoading ? (
               <div className="py-16 text-center text-xs text-muted-foreground">
                 Loading members...
@@ -289,6 +291,15 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
                       <Td className="text-right whitespace-nowrap">
                         {isAdmin && (
                           <div className="flex items-center justify-end space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              onClick={() => setMemberForFamily(member)}
+                              title="Add / Manage Family"
+                            >
+                              <Users className="w-3.5 h-3.5 mr-1" />
+                              Family
+                            </Button>
                             <Button
                               variant="ghost"
                               size="xs"
@@ -434,6 +445,18 @@ export function MembersView({ mosqueId }: { mosqueId: string }) {
         isOpen={isGenerateLinkOpen}
         onClose={() => setIsGenerateLinkOpen(false)}
         mosqueId={mosqueId}
+      />
+
+      {/* Add Family Member for Selected Mosque Member */}
+      <AddFamilyMemberDialog
+        isOpen={Boolean(memberForFamily)}
+        onClose={() => setMemberForFamily(null)}
+        mosqueId={mosqueId}
+        targetMember={
+          memberForFamily
+            ? { id: memberForFamily.id, name: memberForFamily.user.name }
+            : null
+        }
       />
     </div>
   );

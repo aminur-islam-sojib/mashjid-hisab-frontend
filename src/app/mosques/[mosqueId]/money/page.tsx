@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { History, ArrowLeftRight, Landmark, PiggyBank, Tags } from "lucide-react";
+import { History, ArrowLeftRight, Landmark, Tags,  CirclePoundSterling } from "lucide-react";
 import { TransactionsView } from "@/features/transactions/components/transactions-view";
 import { TransfersView } from "@/features/transfers/components/transfers-view";
 import { AccountsView } from "@/features/accounts/components/accounts-view";
@@ -94,7 +94,7 @@ function MoneyContent() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <PiggyBank className="w-3.5 h-3.5" />
+          <CirclePoundSterling className="w-3.5 h-3.5" />
           <span>Funds</span>
         </button>
 

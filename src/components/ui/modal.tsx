@@ -5,6 +5,20 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full";
+
+const modalSizeClasses: Record<ModalSize, string> = {
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl",
+  "3xl": "max-w-3xl",
+  "4xl": "max-w-4xl",
+  "5xl": "max-w-5xl",
+  full: "max-w-[95vw] lg:max-w-7xl",
+};
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,6 +27,7 @@ interface ModalProps {
   children: React.ReactNode;
   className?: string;
   usePortal?: boolean;
+  size?: ModalSize;
 }
 
 export function Modal({
@@ -23,6 +38,7 @@ export function Modal({
   children,
   className,
   usePortal = false,
+  size = "lg",
 }: ModalProps) {
   const [mounted, setMounted] = React.useState(false);
 
@@ -61,7 +77,8 @@ export function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
         className={cn(
-          "relative w-full max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)] my-auto flex flex-col rounded-2xl bg-card p-4 sm:p-6 shadow-xl border border-border text-card-foreground z-10 transition-all zoom-in-95 print:static print:w-full print:max-w-none print:max-h-none print:m-0 print:p-0 print:border-none print:shadow-none print:bg-transparent print:text-inherit print:overflow-visible",
+          "relative w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)] my-auto flex flex-col rounded-2xl bg-card p-4 sm:p-6 shadow-xl border border-border text-card-foreground z-10 transition-all zoom-in-95 print:static print:w-full print:max-w-none print:max-h-none print:m-0 print:p-0 print:border-none print:shadow-none print:bg-transparent print:text-inherit print:overflow-visible",
+          modalSizeClasses[size],
           className
         )}
       >

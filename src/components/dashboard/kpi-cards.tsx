@@ -123,8 +123,8 @@ export function KpiCards({
             <Landmark className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs text-foreground font-medium truncate">Total treasury balance</div>
-            <div className="text-[26px] font-bold text-foreground leading-tight mt-0.5 font-sans tabular-nums">
+            <div className="text-xs text-foreground font-medium upperca truncate">Total treasury balance</div>
+            <div className="text-[26px] font-bold text-foreground leading-tight mt-2 font-sans tabular-nums">
               {formattedTreasury}
             </div>
           </div>
@@ -152,7 +152,7 @@ export function KpiCards({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-xs text-foreground font-medium truncate">Income this month</div>
-            <div className="text-[26px] font-bold text-foreground leading-tight mt-0.5 font-sans tabular-nums">
+            <div className="text-[26px] font-bold text-foreground leading-tight mt-2 font-sans tabular-nums">
               {formattedIncome}{" "}
               {renderTrend(incomeTrendPercentage)}
             </div>
@@ -177,7 +177,7 @@ export function KpiCards({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-xs text-foreground font-medium truncate">Spending this month</div>
-            <div className="text-[26px] font-bold text-foreground leading-tight mt-0.5 font-sans tabular-nums">
+            <div className="text-[26px] font-bold text-foreground leading-tight mt-2 font-sans tabular-nums">
               {formattedExpense}{" "}
               {renderExpenseTrend(expenseTrendPercentage)}
             </div>
@@ -209,7 +209,7 @@ export function KpiCards({
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs text-foreground font-medium truncate">Pending approvals</div>
-            <div className="flex items-baseline justify-between gap-1 mt-0.5">
+            <div className="flex items-baseline justify-between gap-1 mt-2">
               <span className="text-[26px] font-bold text-foreground leading-tight font-sans tabular-nums">
                 {pendingApprovalsCount}
               </span>

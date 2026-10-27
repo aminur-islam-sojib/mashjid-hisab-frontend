@@ -2,17 +2,11 @@
 
 import * as React from "react";
 import { formatCurrency } from "@/lib/money";
-import DonationsChartVector from "./donations-chart-vector";
+import { DonationsChartVector, type DonationDataPoint } from "./donations-chart-vector";
 
-export interface DonationDataPoint {
-  day: number;
-  label: string;
-  date: string;
-  amount: string; // poisha
-  formattedAmount?: string;
-}
+export type { DonationDataPoint };
 
-interface DonationsChartCardProps {
+export interface DonationsChartCardProps {
   monthlyIncome?: string | bigint;
   lastMonthIncome?: string | bigint;
   currentMonthLabel?: string;
@@ -22,16 +16,6 @@ interface DonationsChartCardProps {
   currentMonthPoints?: DonationDataPoint[];
   lastMonthPoints?: DonationDataPoint[];
   dataPoints?: DonationDataPoint[];
-}
-
-function formatCompactK(poishaVal: bigint): string {
-  if (poishaVal === 0n) return "৳0";
-  const taka = Number(poishaVal) / 100;
-  if (taka >= 1000) {
-    const k = taka / 1000;
-    return `৳${k >= 10 ? Math.round(k) : k.toFixed(1)}k`;
-  }
-  return `৳${Math.round(taka)}`;
 }
 
 export function DonationsChartCard({
@@ -87,56 +71,6 @@ export function DonationsChartCard({
     ];
   }, [period, currentMonthPoints, lastMonthPoints, dataPoints, currentMonthLabel, lastMonthLabel]);
 
-  // Dynamic Chart Plot Calculations
-  const chartGeometry = React.useMemo(() => {
-    const pts = activePoints;
-    const amounts = pts.map((p) => BigInt(p.amount || "0"));
-    const maxVal = amounts.reduce((max, val) => (val > max ? val : max), 0n);
-    const effectiveMax = maxVal > 0n ? maxVal : 100000n; // fallback scale ৳1,000
-
-    const xStart = 32;
-    const xEnd = 336;
-    const yBaseline = 121;
-    const yTop = 14;
-
-    const coords = pts.map((p, idx) => {
-      const x = xStart + (idx / (pts.length - 1)) * (xEnd - xStart);
-      const val = BigInt(p.amount || "0");
-      const ratio = Number(val) / Number(effectiveMax);
-      const y = yBaseline - ratio * (yBaseline - yTop);
-      return { x, y, label: p.label };
-    });
-
-    // Generate smooth SVG curve using Catmull-Rom or Bezier segments
-    let strokePath = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
-    for (let i = 0; i < coords.length - 1; i++) {
-      const curr = coords[i];
-      const next = coords[i + 1];
-      const mx = (curr.x + next.x) / 2;
-      strokePath += ` C ${mx.toFixed(1)} ${curr.y.toFixed(1)}, ${mx.toFixed(1)} ${next.y.toFixed(1)}, ${next.x.toFixed(1)} ${next.y.toFixed(1)}`;
-    }
-
-    const fillPath = `${strokePath} L ${coords[coords.length - 1].x.toFixed(1)} ${yBaseline} L ${coords[0].x.toFixed(1)} ${yBaseline} Z`;
-
-    const lastCoord = coords[coords.length - 1];
-
-    // Compute Y-Axis scales
-    const yLabels = [
-      { text: formatCompactK(effectiveMax), y: 12 },
-      { text: formatCompactK((effectiveMax * 2n) / 3n), y: 48 },
-      { text: formatCompactK(effectiveMax / 3n), y: 86 },
-      { text: "৳0", y: 124 },
-    ];
-
-    return {
-      coords,
-      strokePath,
-      fillPath,
-      lastCoord,
-      yLabels,
-    };
-  }, [activePoints]);
-
   const renderTrend = (pct: number) => {
     if (pct > 0) {
       return (
@@ -188,8 +122,9 @@ export function DonationsChartCard({
                     setPeriod(p);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 hover:bg-muted font-medium transition-colors cursor-pointer ${period === p ? "text-primary font-bold bg-muted/40" : "text-foreground"
-                    }`}
+                  className={`w-full text-left px-3 py-1.5 hover:bg-muted font-medium transition-colors cursor-pointer ${
+                    period === p ? "text-primary font-bold bg-muted/40" : "text-foreground"
+                  }`}
                 >
                   {p}
                 </button>
@@ -210,10 +145,11 @@ export function DonationsChartCard({
         </div>
       </div>
 
-      {/* Area Chart Vector Canvas */}
-
-      <DonationsChartVector chartGeometry={chartGeometry} />
-
+      {/* Fully Responsive & Dynamic Area Chart Canvas */}
+      <DonationsChartVector points={activePoints} />
     </div>
   );
 }
+
+export default DonationsChartCard;
+
